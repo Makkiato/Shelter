@@ -5,19 +5,10 @@
 #include <time.h>
 #include "Connect6Algo.h"
 
-char info[] = { "TeamName:Lucky,Department:Jason Mraz" };
-
-
-
-#include <stdio.h>
-#include <Windows.h>
-#include <time.h>
-#include "Connect6Algo.h"
-
-
 #define MY_STONE -1
 #define OPPO_STONE -2
 #define BLOCK_STONE -3
+
 
 #define ELE_R 2
 #define ELE_L 5
@@ -26,49 +17,52 @@ char info[] = { "TeamName:Lucky,Department:Jason Mraz" };
 #define ELE_RL0 3
 #define ELE_UD0 11
 
-/*
-x+ : 2
-x0 : 3
-x- : 5
+#define DIR_R 22   //x+ y0
+#define DIR_L 55   //x- y0
+#define DIR_U 39   //x0 y-
+#define DIR_D 21   //x0 y+
+#define DIR_RU 26   //x+ y-
+#define DIR_LD 35   //x- y+
+#define DIR_RD 14   //x+ y+
+#define DIR_LU 65   //x- y-
 
-y+ : 7
-y0 : 11
-y- : 13
-*/
+#define FIND_FINISH 1
 
-#define DIR_R 22	//x+ y0
-#define DIR_L 55	//x- y0
-#define DIR_U 39	//x0 y-
-#define DIR_D 21	//x0 y+
-#define DIR_RU 26	//x+ y-
-#define DIR_LD 35	//x- y+
-#define DIR_RD 14	//x+ y+
-#define DIR_LU 65	//x- y-
-
-#define TRUE 1
-#define FALSE 0
+FILE* ScanLog;
 
 
 
+char info[] = { "TeamName:1234567890,Department:AI부서[C]" };
 
-int GetEleByDistance(int x, int dx, int i)
+
+void InitLog()
 {
-	return x + (dx * i);
+	ScanLog = fopen("./ScanLog.txt", "a");
 }
 
-//각 방향 검사 후 리턴
-int CheckSingleDir(int x, int dx, int y, int dy, int valueBoard[19][19])
+void TermLog()
+{
+	fclose(ScanLog);
+}
+
+
+boolean isValidP(int x, int y, int valueBoard[][19])
+{
+	return isFree(x, y) && (valueBoard[x][y] >= 0);
+}
+
+int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone)
 {
 	int count = 0;
 
 	for (int i = 1; i < 6; i++)
 	{
-		if (valueBoard[x + i * dx][y + i * dy] != OPPO_STONE && valueBoard[x + i * dx][y + i * dy] < 0)
+		if (valueBoard[x + i * dx][y + i * dy] != exceptStone && valueBoard[x + i * dx][y + i * dy] < 0)
 		{
 			count++;
 		}
 
-		else if (valueBoard[x + i * dx][y + i * dy] == OPPO_STONE)
+		else if (valueBoard[x + i * dx][y + i * dy] == exceptStone)
 		{
 			count = 0;
 			break;
@@ -78,112 +72,122 @@ int CheckSingleDir(int x, int dx, int y, int dy, int valueBoard[19][19])
 	return count;
 }
 
-
-int CheckEmpty(int x, int y, int dx, int dy,int valueBoard[19][19])
+int ScanFinish(int x, int y, int valueBoard[][19], int exceptStone)
 {
 
-	for (int i = 1; i < 6; i++)
-	{
-		if (valueBoard[GetEleByDistance(x,dx,i)][GetEleByDistance(y,dy,i)] >= 0)
-			return i;
-		
-	}
-	return 0;
-}
 
-//8방향 검사 CheckSingleDir 호출
-int CheckAllDir(int x, int y, int valueBoard[19][19])
-{
-	//fprintf(myCalLog, "At ( %d , %d )\n", x, y);
 	//우측
-	int countR = CheckSingleDir(x, y, 1, 0, valueBoard);
-	//fprintf(myCalLog, "R Finish Checked...\n");
+	int countR = Scan(x, y, 1, 0, valueBoard, exceptStone);
 	//좌측
-	int countL = CheckSingleDir(x, y, -1, 0, valueBoard);
-	//fprintf(myCalLog, "L Finish Checked...\n");
+	int countL = Scan(x, y, -1, 0, valueBoard, exceptStone);
 	//상측
-	int countU = CheckSingleDir(x, y, 0, -1, valueBoard);
-	//fprintf(myCalLog, "U Finish Checked...\n");
+	int countU = Scan(x, y, 0, -1, valueBoard, exceptStone);
 	//하측
-	int countD = CheckSingleDir(x, y, 0, 1, valueBoard);
-	//fprintf(myCalLog, "D Finish Checked...\n");
+	int countD = Scan(x, y, 0, 1, valueBoard, exceptStone);
 	//우상측
-	int countRU = CheckSingleDir(x, y, 1, -1, valueBoard);
-	//fprintf(myCalLog, "RU Finish Checked...\n");
+	int countRU = Scan(x, y, 1, -1, valueBoard, exceptStone);
 	//우하측
-	int countRD = CheckSingleDir(x, y, 1, 1, valueBoard);
-	//fprintf(myCalLog, "RD Finish Checked...\n");
+	int countRD = Scan(x, y, 1, 1, valueBoard, exceptStone);
 	//좌상측
-	int countLU = CheckSingleDir(x, y, -1, -1, valueBoard);
-	//fprintf(myCalLog, "LU Finish Checked...\n");
+	int countLU = Scan(x, y, -1, -1, valueBoard, exceptStone);
 	//좌하측
-	int countLD = CheckSingleDir(x, y, -1, 1, valueBoard);
-	//fprintf(myCalLog, "LD Finish Checked...\n");
+	int countLD = Scan(x, y, -1, 1, valueBoard, exceptStone);
 
 	if (countR >= 3)
 	{
-		//fprintf(myCalLog, "R has problem...\n");
 		return DIR_R;
 	}
 	if (countL >= 3)
 	{
-		//fprintf(myCalLog, "L has problem...\n");
 		return DIR_L;
 	}
 	if (countU >= 3)
 	{
-		//fprintf(myCalLog, "U has problem...\n");
 		return DIR_U;
 	}
 	if (countD >= 3)
 	{
-		//fprintf(myCalLog, "D has problem...\n");
 		return DIR_D;
 	}
 	if (countRU >= 3)
 	{
-		//fprintf(myCalLog, "RU has problem...\n");
 		return DIR_RU;
 	}
 	if (countRD >= 3)
 	{
-		//fprintf(myCalLog, "RD has problem...\n");
 		return DIR_RD;
 	}
 	if (countLU >= 3)
 	{
-		//fprintf(myCalLog, "LU has problem...\n");
 		return DIR_LU;
 	}
 	if (countLD >= 3)
 	{
-		//fprintf(myCalLog, "LD has problem...\n");
 		return DIR_LD;
 	}
 
 	return 0;
 }
 
+int ScanEmpty(int x, int y, int dx, int dy, int valueBoard[][19])
+{
+	//TODO 나중에는 두 점 이상이 비어있는 것으로 나올때 둘중 가치가 더 큰 점을 활용하도록
 
-//육목검사 CheckAlldir 호출
-void FindFinish(int point[2], int valueBoard[19][19])
+	int toReturn = 0;
+	for (int i = 1; i < 6; i++)
+	{
+		if (valueBoard[x + i * dx][y + i * dy] >= 0 && isFree(x+i*dx,y+i*dy))
+		{
+			fprintf(ScanLog, "( %d , %d ) is %d \n", x + i * dx, y + i * dy,valueBoard[x+i*dx][y+i*dy]);
+			toReturn = i;
+			break;
+		}
+	}
+
+	return toReturn;
+}
+
+void InitValue(int valueBoard[][19], int firstX, int firstY, int stoneValue)
+{
+
+	for (int x = 0; x < 19; x++)
+	{
+		for (int y = 0; y < 19; y++)
+		{
+			if (showBoard(x, y) == 1)
+				valueBoard[x][y] = MY_STONE;
+			else if (showBoard(x, y) == 2)
+				valueBoard[x][y] = OPPO_STONE;
+			else if (showBoard(x, y) == 3)
+				valueBoard[x][y] = BLOCK_STONE;
+			else
+				valueBoard[x][y] = 0;
+		}
+	}
+
+}
+
+int EvaluateFinish(int point[2], int valueBoard[][19], int exceptStone)
 {
 	for (int x = 0; x < 19; x++)
 	{
 		for (int y = 0; y < 19; y++)
 		{
-			if (valueBoard[x][y] < 0 && valueBoard[x][y] != OPPO_STONE)
+			if (valueBoard[x][y] < 0 && valueBoard[x][y] != exceptStone)
 			{
-				int dir = CheckAllDir(x, y, valueBoard);
-				int dx = 0;
-				int dy = 0;
-				int dis = 0;
+				int dir = ScanFinish(x, y, valueBoard, exceptStone);
 
-				if (dir)
+				if (dir == 0)
+					continue;
+				else
 				{
+					int distance;
+					int dx;
+					int dy;
+
 					if (dir % ELE_R == 0)
 						dx = 1;
-					else if (dir % ELE_L == 0)
+					else if (dir%ELE_L == 0)
 						dx = -1;
 					else
 						dx = 0;
@@ -191,136 +195,110 @@ void FindFinish(int point[2], int valueBoard[19][19])
 					if (dir % ELE_U == 0)
 						dy = -1;
 					else if (dir % ELE_D == 0)
-						dy = +1;
+						dy = 1;
 					else
 						dy = 0;
 
+					distance = ScanEmpty(x, y, dx, dy, valueBoard);
+					if (isValidP(x + distance * dx, y + distance * dy, valueBoard))
+					{
+						point[0] = x + (dx * distance);
+						point[1] = y + (dy * distance);
 
-					dis = CheckEmpty(x, y, dx, dy, valueBoard);
-					
-					point[0] = GetEleByDistance(x, dx, dis);
-					point[1] = GetEleByDistance(y, dy, dis);
-
+						return FIND_FINISH;
+					}
 				}
 			}
 		}
 	}
 }
 
-//최초 계산용 보드 초기화
-void InitBoard(int valueBoard[19][19])
+void myturn(int cnt)
 {
-	for (int x = 0; x < 19; x++)
-	{
-		for (int y = 0; y < 19; y++)
-		{
-			if (showBoard(x, y) == 1)
-			{
-				valueBoard[x][y] == MY_STONE;
-			}
-			else if (showBoard(x, y) == 2)
-			{
-				valueBoard[x][y] == OPPO_STONE;
-			}
-			else if (showBoard(x, y) == 3)
-			{
-				valueBoard[x][y] == BLOCK_STONE;
-			}
-			else
-			{
-				valueBoard[x][y] == 0;
-			}
-			
-		}
-	}
 
-}
-
-
-void CloneBoard(int original[19][19], int brandNew[19][19])
-{
-	for (int x = 0; x < 19; x++)
-	{
-		for (int y = 0; y < 19; y++)
-		{
-			if (original[x][y] < 0)
-			{
-				brandNew[x][y] = original[x][y];
-			}
-			else
-				brandNew[x][y] = 0;
-		}
-	}
-}
-
-int isValid(int x, int y)
-{
-	if (x == 0 && y == 0)
-		return FALSE;
-	else
-		return TRUE;
-}
-
-void myturn(int cnt) {
 
 	int x[2], y[2];
-	int valueBoard1[19][19] = { 0 };
-	int valueBoard2[19][19] = { 0 };
-	int point1[2] = { 0 };
-	int point2[2] = { 0 };
-	int p1Valid = FALSE;
-	int p2Valid = FALSE;
+	int myValue[19][19];
+	int oppoValue[19][19];
+	int myValue2[19][19];
+	int oppoValue2[19][19];
+	int firstPoint[2];
+	int secondPoint[2];
+	boolean firstOppoFin = false;
+	boolean firstMyFin = false;
 
-
-	InitBoard(valueBoard1);
-	FindFinish(point1, valueBoard1);
-	CloneBoard(valueBoard1, valueBoard2);
-
-	p1Valid = isValid(point1[0], point1[1]);
-
-	if (p1Valid)
+	InitLog();
+	if (!terminateAI)
 	{
-		valueBoard2[point1[0]][point1[1]] = MY_STONE;
+		InitValue(myValue, 0, 0, 0);
+
+		srand((unsigned)time(NULL));
+		for (int i = 0; i < cnt; i++) {
+			do {
+				x[i] = rand() % width;
+				y[i] = rand() % height;
+				if (terminateAI) return;
+			} while (!isFree(x[i], y[i]));
+			if (x[1] == x[0] && y[1] == y[0]) i--;
+		}
+		firstMyFin = EvaluateFinish(firstPoint, myValue, OPPO_STONE) == FIND_FINISH;
+		firstOppoFin = EvaluateFinish(firstPoint, myValue, MY_STONE) == FIND_FINISH;
+		if (firstOppoFin)
+		{
+
+			x[0] = firstPoint[0];
+			y[0] = firstPoint[1];
+
+		}
+		else if (firstMyFin)
+		{
+			x[0] = firstPoint[0];
+			y[0] = firstPoint[1];
+		}
+		
+
+		for (int x = 0; x < 19; x++)
+		{
+			for (int y = 0; y < 19; y++)
+			{
+				myValue2[x][y] = myValue[x][y];
+			}
+		}
+		if (EvaluateFinish(firstPoint, myValue, MY_STONE) == FIND_FINISH)
+			myValue2[firstPoint[0]][firstPoint[1]] = -1;
+		if (EvaluateFinish(firstPoint, myValue, OPPO_STONE) == FIND_FINISH)
+			myValue2[firstPoint[0]][firstPoint[1]] = -2;
+
+
+		if (EvaluateFinish(secondPoint, myValue2, OPPO_STONE) == FIND_FINISH)
+		{
+
+			x[1] = secondPoint[0];
+
+			y[1] = secondPoint[1];
+		}
+
+
+		else if (EvaluateFinish(secondPoint, myValue2, MY_STONE) == FIND_FINISH)
+		{
+
+			x[1] = secondPoint[0];
+			y[1] = secondPoint[1];
+
+
+		}
+		TermLog();
+
+		// 이 부분에서 알고리즘 프로그램(AI)을 작성하십시오. 기본 제공된 코드를 수정 또는 삭제하고 본인이 코드를 사용하시면 됩니다.
+		// 현재 Sample code의 AI는 Random으로 돌을 놓는 Algorithm이 작성되어 있습니다
+
+
+
+		// 이 부분에서 자신이 놓을 돌을 출력하십시오.
+		// 필수 함수 : domymove(x배열,y배열,배열크기)
+		// 여기서 배열크기(cnt)는 myturn()의 파라미터 cnt를 그대로 넣어야합니다.
+
+
+		domymove(x, y, cnt);
 	}
-	FindFinish(point2, valueBoard2);
-
-	
-	p2Valid = isValid(point2[0], point2[1]);
-
-
-	srand((unsigned)time(NULL));
-
-	for (int i = 0; i < cnt; i++) {
-		do {
-			x[i] = rand() % width;
-			y[i] = rand() % height;
-			if (terminateAI) return;
-		} while (!isFree(x[i], y[i]));
-
-		if (x[1] == x[0] && y[1] == y[0]) i--;
-	}
-
-
-	if (p1Valid && p2Valid)
-	{
-		x[0] = point1[0];
-		x[1] = point2[0];
-		y[0] = point1[1];
-		y[1] = point2[1];
-	}
-	else if (p1Valid && !p2Valid)
-	{
-		x[0] = point1[0];
-		y[0] = point1[1];
-	}
-	else if (!p1Valid && p2Valid)
-	{
-		x[1] = point2[0];
-		y[1] = point2[1];
-	}
-	
-
-	
-
-	domymove(x, y, cnt);
 }

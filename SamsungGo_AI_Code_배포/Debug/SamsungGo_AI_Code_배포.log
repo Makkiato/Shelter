@@ -1,7 +1,2 @@
-﻿  AI_Algorithm_Code.cpp
-c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(219): warning C4553: '==': 식의 결과가 사용되지 않습니다. '='을(를) 의도했습니까?
-c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(223): warning C4553: '==': 식의 결과가 사용되지 않습니다. '='을(를) 의도했습니까?
-c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(227): warning C4553: '==': 식의 결과가 사용되지 않습니다. '='을(를) 의도했습니까?
-c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(231): warning C4553: '==': 식의 결과가 사용되지 않습니다. '='을(를) 의도했습니까?
-  AI_Algorithm_Code.obj : 관리되는 코드가 있을 때 /DEBUG:FASTLINK은(는) 지원되지 않습니다. /DEBUG:FULL을 사용하여 링크를 다시 시작합니다.
+﻿  AI_Algorithm_Code.obj : 관리되는 코드가 있을 때 /DEBUG:FASTLINK은(는) 지원되지 않습니다. /DEBUG:FULL을 사용하여 링크를 다시 시작합니다.
   SamsungGo_AI_Code_배포.vcxproj -> C:\Users\어유선\Documents\GitHub\Shelter\Shelter\Debug\SamsungGo_AI_Code_배포.exe
