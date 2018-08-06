@@ -77,7 +77,7 @@ boolean outOfBound(int x, int y)
 
 boolean isValidP(int x, int y, int valueBoard[][19])
 {
-	return isFree(x, y) && !outOfBound(x,y);
+	return (valueBoard[x][y]>=0) && !outOfBound(x,y);
 }
 
 int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone)
@@ -421,14 +421,14 @@ void myturn(int cnt)
 		}*/
 		firstMyFin = EvaluateFinish(firstPoint, myValue, OPPO_STONE) == FIND_FINISH;
 		firstOppoFin = EvaluateFinish(firstPoint, myValue, MY_STONE) == FIND_FINISH;
-		if (firstOppoFin)
+		if (firstMyFin)
 		{
 
 			x[0] = firstPoint[0];
 			y[0] = firstPoint[1];
 
 		}
-		else if (firstMyFin)
+		else if (firstOppoFin)
 		{
 			x[0] = firstPoint[0];
 			y[0] = firstPoint[1];
@@ -458,19 +458,23 @@ void myturn(int cnt)
 		myValue2[firstPoint[0]][firstPoint[1]] = -1;
 
 		ValueSet(myValue2);
+		fprintf(BoardLog, "\n\n-------------------myValue1--------------\n\n");
+		LogBoard(BoardLog, myValue);
 
+		fprintf(BoardLog, "\n\n-------------------myValue2--------------\n\n");
+		LogBoard(BoardLog, myValue2);
 		/*
 		else if (firstMyFin)
 			myValue2[firstPoint[0]][firstPoint[1]] = -2;
 			*/
 
 
-		if (EvaluateFinish(secondPoint, myValue2, MY_STONE) == FIND_FINISH)
+		if (EvaluateFinish(secondPoint, myValue2, OPPO_STONE) == FIND_FINISH)
 		{
 			x[1] = secondPoint[0];
 			y[1] = secondPoint[1];
 		}
-		else if (EvaluateFinish(secondPoint, myValue2, OPPO_STONE) == FIND_FINISH)
+		else if (EvaluateFinish(secondPoint, myValue2, MY_STONE) == FIND_FINISH)
 		{
 			x[1] = secondPoint[0];
 			y[1] = secondPoint[1];
