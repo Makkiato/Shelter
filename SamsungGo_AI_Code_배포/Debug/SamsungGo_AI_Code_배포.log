@@ -1,25 +1,7 @@
-﻿빌드 시작: 2016-10-21 오전 9:11:49
-     1>2 노드의 "c:\Users\User\documents\visual studio 2013\Projects\SamsungGo_AI_Code_배포\SamsungGo_AI_Code_배포\SamsungGo_AI_Code_배포.vcxproj" 프로젝트(Build 대상)입니다.
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\\" /AI"C:\Program Files (x86)\Windows Kits\8.1\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Facades\\" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /TP /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /analyze- /errorReport:prompt /clr:nostdlib AI_Algorithm_Code.cpp Connect6Algo.cpp
-         AI_Algorithm_Code.cpp
-         Connect6Algo.cpp
-         코드를 생성하고 있습니다...
-     1>c:\users\user\documents\visual studio 2013\projects\samsunggo_ai_code_배포\samsunggo_ai_code_배포\connect6algo.cpp(36): warning C4793: 'setLine' : 함수가 네이티브로 컴파일되었습니다.
-         	/clr에서는 vararg가 지원되지 않습니다.
-     1>c:\users\user\documents\visual studio 2013\projects\samsunggo_ai_code_배포\samsunggo_ai_code_배포\connect6algo.cpp(39): warning C4793: 'setLine' : 함수가 네이티브로 컴파일되었습니다.
-         	관리 코드에서 지원되지 않는 내장 함수가 있습니다.
-     1>c:\users\user\documents\visual studio 2013\projects\samsunggo_ai_code_배포\samsunggo_ai_code_배포\connect6algo.cpp(43): warning C4793: 'setLine' : 함수가 네이티브로 컴파일되었습니다.
-         	관리 코드에서 지원되지 않는 내장 함수가 있습니다.
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /TP /analyze- /errorReport:prompt "C:\Users\User\AppData\Local\Temp\.NETFramework,Version=v4.5.AssemblyAttributes.cpp"
-         .NETFramework,Version=v4.5.AssemblyAttributes.cpp
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"c:\users\user\documents\visual studio 2013\Projects\SamsungGo_AI_Code_배포\Debug\SamsungGo_AI_Code_배포.exe" /INCREMENTAL /NOLOGO /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"c:\users\user\documents\visual studio 2013\Projects\SamsungGo_AI_Code_배포\Debug\SamsungGo_AI_Code_배포.pdb" /ASSEMBLYDEBUG /TLBID:1 /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X86 Debug\AI_Algorithm_Code.obj
-         Debug\Connect6Algo.obj
-         "Debug\.NETFramework,Version=v4.5.AssemblyAttributes.obj"
-         SamsungGo_AI_Code_배포.vcxproj -> c:\users\user\documents\visual studio 2013\Projects\SamsungGo_AI_Code_배포\Debug\SamsungGo_AI_Code_배포.exe
-     1>"c:\Users\User\documents\visual studio 2013\Projects\SamsungGo_AI_Code_배포\SamsungGo_AI_Code_배포\SamsungGo_AI_Code_배포.vcxproj" 프로젝트를 빌드했습니다(Build 대상).
-
-빌드했습니다.
-
-경과 시간: 00:00:05.77
+﻿  AI_Algorithm_Code.cpp
+c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(219): warning C4553: '==': 식의 결과가 사용되지 않습니다. '='을(를) 의도했습니까?
+c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(223): warning C4553: '==': 식의 결과가 사용되지 않습니다. '='을(를) 의도했습니까?
+c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(227): warning C4553: '==': 식의 결과가 사용되지 않습니다. '='을(를) 의도했습니까?
+c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(231): warning C4553: '==': 식의 결과가 사용되지 않습니다. '='을(를) 의도했습니까?
+  AI_Algorithm_Code.obj : 관리되는 코드가 있을 때 /DEBUG:FASTLINK은(는) 지원되지 않습니다. /DEBUG:FULL을 사용하여 링크를 다시 시작합니다.
+  SamsungGo_AI_Code_배포.vcxproj -> C:\Users\어유선\Documents\GitHub\Shelter\Shelter\Debug\SamsungGo_AI_Code_배포.exe
