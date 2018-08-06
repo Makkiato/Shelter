@@ -45,30 +45,42 @@ void TermLog()
 	fclose(ScanLog);
 }
 
+boolean outOfBound(int x, int y)
+{
+	fprintf(ScanLog, "Out of Bound! : ( %d , %d ) \n", x, y);
+	return (x < 0 || x>18 || y < 0 || y>18);
+}
 
 boolean isValidP(int x, int y, int valueBoard[][19])
 {
-	return isFree(x, y) && (valueBoard[x][y] >= 0);
+	return isFree(x, y) && !outOfBound(x,y);
 }
 
 int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone)
 {
 	int count = 0;
-
+	int heading = 0;
+	fprintf(ScanLog, "Standard Point : ( %d , %d ) \n", x , y );
 	for (int i = 1; i < 6; i++)
 	{
 		if (valueBoard[x + i * dx][y + i * dy] != exceptStone && valueBoard[x + i * dx][y + i * dy] < 0)
 		{
 			count++;
+			fprintf(ScanLog, "Checked on with i : %d ! : ( %d , %d ) \n",i, x + i * dx, y + i * dy);
+			
 		}
 
 		else if (valueBoard[x + i * dx][y + i * dy] == exceptStone)
 		{
 			count = 0;
-			break;
+			
 		}
 	}
+	if ( outOfBound(x + 5 * dx, y + 5 * dy))
+	{
 
+		count = 0;
+	}
 	return count;
 }
 
@@ -264,28 +276,24 @@ void myturn(int cnt)
 				myValue2[x][y] = myValue[x][y];
 			}
 		}
-		if (EvaluateFinish(firstPoint, myValue, MY_STONE) == FIND_FINISH)
+		if (firstOppoFin || firstMyFin)
 			myValue2[firstPoint[0]][firstPoint[1]] = -1;
-		if (EvaluateFinish(firstPoint, myValue, OPPO_STONE) == FIND_FINISH)
+
+		/*
+		else if (firstMyFin)
 			myValue2[firstPoint[0]][firstPoint[1]] = -2;
+			*/
 
 
 		if (EvaluateFinish(secondPoint, myValue2, OPPO_STONE) == FIND_FINISH)
 		{
-
 			x[1] = secondPoint[0];
-
 			y[1] = secondPoint[1];
 		}
-
-
 		else if (EvaluateFinish(secondPoint, myValue2, MY_STONE) == FIND_FINISH)
 		{
-
 			x[1] = secondPoint[0];
 			y[1] = secondPoint[1];
-
-
 		}
 		TermLog();
 
