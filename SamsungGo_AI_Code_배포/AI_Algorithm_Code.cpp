@@ -253,6 +253,14 @@ void CloneBoard(int original[19][19], int brandNew[19][19])
 	}
 }
 
+int isValid(int x, int y)
+{
+	if (x == 0 && y == 0)
+		return FALSE;
+	else
+		return TRUE;
+}
+
 void myturn(int cnt) {
 
 	int x[2], y[2];
@@ -260,16 +268,24 @@ void myturn(int cnt) {
 	int valueBoard2[19][19] = { 0 };
 	int point1[2] = { 0 };
 	int point2[2] = { 0 };
+	int p1Valid = FALSE;
+	int p2Valid = FALSE;
+
 
 	InitBoard(valueBoard1);
 	FindFinish(point1, valueBoard1);
 	CloneBoard(valueBoard1, valueBoard2);
-	if (!(point1[0] == 0 && point1[1] == 0))
+
+	p1Valid = isValid(point1[0], point1[1]);
+
+	if (p1Valid)
 	{
 		valueBoard2[point1[0]][point1[1]] = MY_STONE;
 	}
 	FindFinish(point2, valueBoard2);
 
+	
+	p2Valid = isValid(point2[0], point2[1]);
 
 
 	srand((unsigned)time(NULL));
@@ -283,6 +299,28 @@ void myturn(int cnt) {
 
 		if (x[1] == x[0] && y[1] == y[0]) i--;
 	}
+
+
+	if (p1Valid && p2Valid)
+	{
+		x[0] = point1[0];
+		x[1] = point2[0];
+		y[0] = point1[1];
+		y[1] = point2[1];
+	}
+	else if (p1Valid && !p2Valid)
+	{
+		x[0] = point1[0];
+		y[0] = point1[1];
+	}
+	else if (!p1Valid && p2Valid)
+	{
+		x[1] = point2[0];
+		y[1] = point2[1];
+	}
+	
+
+	
 
 	domymove(x, y, cnt);
 }
