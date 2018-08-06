@@ -1,2 +1,10 @@
-﻿  AI_Algorithm_Code.obj : 관리되는 코드가 있을 때 /DEBUG:FASTLINK은(는) 지원되지 않습니다. /DEBUG:FULL을 사용하여 링크를 다시 시작합니다.
+﻿  AI_Algorithm_Code.cpp
+c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(62): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(208): note: 'fopen' 선언을 참조하십시오.
+c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(63): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(208): note: 'fopen' 선언을 참조하십시오.
+c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(398): warning C4101: 'oppoValue' :참조되지 않은 지역 변수입니다.
+c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(400): warning C4101: 'oppoValue2' :참조되지 않은 지역 변수입니다.
+c:\users\어유선\documents\github\shelter\shelter\samsunggo_ai_code_배포\ai_algorithm_code.cpp(291): warning C4715: 'EvaluateFinish': 모든 제어 경로에서 값을 반환하지는 않습니다.
+  AI_Algorithm_Code.obj : 관리되는 코드가 있을 때 /DEBUG:FASTLINK은(는) 지원되지 않습니다. /DEBUG:FULL을 사용하여 링크를 다시 시작합니다.
   SamsungGo_AI_Code_배포.vcxproj -> C:\Users\어유선\Documents\GitHub\Shelter\Shelter\Debug\SamsungGo_AI_Code_배포.exe
