@@ -1,5 +1,7 @@
 
 
+//TODO expectMax 제대로 계산 못함
+
 #include <stdio.h>
 #include <Windows.h>
 #include <time.h>
@@ -188,28 +190,54 @@ int ScanEmpty(int x, int y, int dx, int dy, int valueBoard[][19])
 
 void AddValue(int x, int y, int valueBoard[][19])
 {
+	boolean rAlive = true;
+	boolean lAlive = true;
+	boolean uAlive = true;
+	boolean dAlive = true;
+	boolean ruAlive = true;
+	boolean rdAlive = true;
+	boolean luAlive = true;
+	boolean ldAlive = true;
+
+
 	for (int i = 1; i < 6; i++)
 	{
 		int rx = x + i;
 		int lx = x - i;
 		int uy = y - i;
 		int dy = y + i;
-		if (isValidP(rx, y, valueBoard))
+		if (isValidP(rx, y, valueBoard) && rAlive)
 			valueBoard[rx][y]++;
-		if (isValidP(rx, uy, valueBoard))
+		else
+			rAlive = false;
+		if (isValidP(rx, uy, valueBoard) && ruAlive)
 			valueBoard[rx][uy]++;
-		if (isValidP(rx, dy, valueBoard))
+		else
+			ruAlive = false;
+		if (isValidP(rx, dy, valueBoard) && rdAlive)
 			valueBoard[rx][dy]++;
-		if (isValidP(x, uy, valueBoard))
+		else
+			rdAlive = false;
+		if (isValidP(x, uy, valueBoard) && uAlive)
 			valueBoard[x][uy]++;
-		if (isValidP(x, dy, valueBoard))
+		else
+			uAlive = false;
+		if (isValidP(x, dy, valueBoard) && dAlive)
 			valueBoard[x][dy]++;
-		if (isValidP(lx, y, valueBoard))
+		else
+			dAlive = false;
+		if (isValidP(lx, y, valueBoard) && lAlive)
 			valueBoard[lx][y]++;
-		if (isValidP(lx, dy, valueBoard))
+		else
+			lAlive = false;
+		if (isValidP(lx, dy, valueBoard) && ldAlive)
 			valueBoard[lx][dy]++;
-		if (isValidP(lx, uy, valueBoard))
+		else
+			ldAlive = false;
+		if (isValidP(lx, uy, valueBoard) && luAlive)
 			valueBoard[lx][uy]++;
+		else
+			luAlive = false;
 	}
 }
 
@@ -407,6 +435,7 @@ void myturn(int cnt)
 	int x[2], y[2];
 	int myValue[19][19];
 	int oppoValue[19][19];
+	int finalValue[19][19];
 	int myValue2[19][19];
 	int oppoValue2[19][19];
 	int firstPoint[2];
@@ -469,11 +498,7 @@ void myturn(int cnt)
 		myValue2[firstPoint[0]][firstPoint[1]] = -1;
 
 		ValueSet(myValue2);
-		fprintf(BoardLog, "\n\n-------------------myValue1--------------\n\n");
-		LogBoard(BoardLog, myValue);
-
-		fprintf(BoardLog, "\n\n-------------------myValue2--------------\n\n");
-		LogBoard(BoardLog, myValue2);
+		
 		/*
 		else if (firstMyFin)
 			myValue2[firstPoint[0]][firstPoint[1]] = -2;
@@ -496,6 +521,34 @@ void myturn(int cnt)
 			x[1] = secondPoint[0];
 			y[1] = secondPoint[1];
 		}
+
+		for (int x = 0; x < 19; x++)
+		{
+			for (int y = 0; y < 19; y++)
+			{
+				if (myValue2[x][y] < 0)
+					finalValue[x][y] = myValue2[x][y];
+				else
+					finalValue[x][y] = 0;
+			}
+		}
+		finalValue[secondPoint[0]][secondPoint[1]] = -1;
+
+		ValueSet(finalValue);
+
+
+		fprintf(BoardLog, "\n\n-------------------myValue1--------------\n\n");
+		LogBoard(BoardLog, myValue);
+
+		fprintf(BoardLog, "\n\n-------------------myValue2--------------\n\n");
+		LogBoard(BoardLog, myValue2);
+		fprintf(BoardLog, "\n\n-------------------finalValue2--------------\n\n");
+		LogBoard(BoardLog, finalValue);
+
+
+
+
+
 		TermLog();
 
 		// 이 부분에서 알고리즘 프로그램(AI)을 작성하십시오. 기본 제공된 코드를 수정 또는 삭제하고 본인이 코드를 사용하시면 됩니다.
