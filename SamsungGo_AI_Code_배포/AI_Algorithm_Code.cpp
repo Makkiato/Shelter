@@ -30,6 +30,7 @@
 
 FILE* ScanLog;
 FILE* BoardLog;
+FILE* EvaLog;
 
 typedef struct expect
 {
@@ -59,12 +60,14 @@ void LogBoard(FILE* logFP, int valueBoard[][19])
 }
 void InitLog()
 {
+	EvaLog = fopen("./EvaLog.txt", "a");
 	ScanLog = fopen("./ScanLog.txt", "a");
 	BoardLog = fopen("./BoardLog.txt", "a");
 }
 
 void TermLog()
 {
+	fclose(EvaLog);
 	fclose(ScanLog);
 	fclose(BoardLog);
 }
@@ -77,7 +80,7 @@ boolean outOfBound(int x, int y)
 
 boolean isValidP(int x, int y, int valueBoard[][19])
 {
-	return (valueBoard[x][y]>=0) && !outOfBound(x,y);
+	return !outOfBound(x, y) && (valueBoard[x][y] >= 0);
 }
 
 int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone)
@@ -316,6 +319,8 @@ int GetMQ(int maximum, int valueBoard[][19])
 			int target = valueBoard[x][y];
 			if (target == maximum)
 				quantity++;
+
+			
 		}
 	}
 
@@ -334,7 +339,7 @@ void Evaluate(int point[2], int valueBoard[][19])
 	//여기까지 이상 없음
 	
 	lineUp = (expect*)malloc(sizeof(expect)*MQ);
-
+	fprintf(EvaLog, "\n\n----------------Expectation start----------------\n\n");
 	for (int x = 0; x < 19; x++)
 	{
 		for (int y = 0; y < 19; y++)
@@ -342,12 +347,18 @@ void Evaluate(int point[2], int valueBoard[][19])
 			int target = valueBoard[x][y];
 			if (target == MV)
 			{				
+
+				
 				lineUp[deployed].point[0] = x;
 				lineUp[deployed].point[1] = y;
 				InitValue(lineUp[deployed].expectBoard);
+				lineUp[deployed].expectBoard[x][y] = MY_STONE; //여기 중요!!
 				ValueSet(lineUp[deployed].expectBoard);
 				lineUp[deployed].expectMax = GetMV(lineUp[deployed].expectBoard);
 				lineUp[deployed].expectQuan = GetMQ(lineUp[deployed].expectMax, lineUp[deployed].expectBoard);
+
+				fprintf(EvaLog, "( %d , %d )\nexpectMax = %d\nexpectQuan = %d\n\n", x, y,
+					lineUp[deployed].expectMax, lineUp[deployed].expectQuan);
 				if (maxPair[0] < lineUp[deployed].expectMax)
 				{
 					maxPair[0] = lineUp[deployed].expectMax;
