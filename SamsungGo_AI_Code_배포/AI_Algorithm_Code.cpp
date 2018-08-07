@@ -33,6 +33,8 @@
 FILE* ScanLog;
 FILE* BoardLog;
 FILE* EvaLog;
+FILE* ExpMax;
+FILE* ValueLog;
 
 typedef struct expect
 {
@@ -44,6 +46,21 @@ typedef struct expect
 
 
 char info[] = { "TeamName:1234567890,Department:AI부서[C]" };
+
+
+void CloneBoard(int original[][19], int secondary[][19])
+{
+	for (int x = 0; x < 19; x++)
+	{
+		for (int y = 0; y < 19; y++)
+		{
+			if (original[x][y] < 0)
+				secondary[x][y] = original[x][y];
+			else
+				secondary[x][y] = 0;
+		}
+	}
+}
 
 void LogBoard(FILE* logFP, int valueBoard[][19])
 {
@@ -65,24 +82,34 @@ void InitLog()
 	EvaLog = fopen("./EvaLog.txt", "a");
 	ScanLog = fopen("./ScanLog.txt", "a");
 	BoardLog = fopen("./BoardLog.txt", "a");
+	ExpMax = fopen("./ExpMax.txt", "a");
+	ValueLog = fopen("./ValueLog.txt", "a");
 }
 
 void TermLog()
 {
+	fclose(ValueLog);
 	fclose(EvaLog);
 	fclose(ScanLog);
 	fclose(BoardLog);
+	fclose(ExpMax);
 }
 
-boolean outOfBound(int x, int y)
+
+boolean OutOfBound(int x, int y)
 {
 	fprintf(ScanLog, "Out of Bound! : ( %d , %d ) \n", x, y);
 	return (x < 0 || x>18 || y < 0 || y>18);
 }
 
+boolean isSequence(int x, int y, int valueBoard[][19])
+{
+	return ((valueBoard[x][y] >= 0)||valueBoard[x][y] ==-1 || valueBoard[x][y] == -3 ) && !OutOfBound(x,y) ;
+}
+
 boolean isValidP(int x, int y, int valueBoard[][19])
 {
-	return !outOfBound(x, y) && (valueBoard[x][y] >= 0);
+	return !OutOfBound(x, y) && (valueBoard[x][y] >= 0);
 }
 
 int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone)
@@ -105,7 +132,7 @@ int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone)
 			
 		}
 	}
-	if ( outOfBound(x + 5 * dx, y + 5 * dy))
+	if ( OutOfBound(x + 5 * dx, y + 5 * dy))
 	{
 
 		count = 0;
@@ -188,6 +215,7 @@ int ScanEmpty(int x, int y, int dx, int dy, int valueBoard[][19])
 	return toReturn;
 }
 
+
 void AddValue(int x, int y, int valueBoard[][19])
 {
 	boolean rAlive = true;
@@ -206,36 +234,60 @@ void AddValue(int x, int y, int valueBoard[][19])
 		int lx = x - i;
 		int uy = y - i;
 		int dy = y + i;
-		if (isValidP(rx, y, valueBoard) && rAlive)
-			valueBoard[rx][y]++;
+		if (isSequence(rx, y, valueBoard) && rAlive)
+		{
+			if (isValidP(rx, y,valueBoard))
+				valueBoard[rx][y]++;
+		}
 		else
 			rAlive = false;
-		if (isValidP(rx, uy, valueBoard) && ruAlive)
-			valueBoard[rx][uy]++;
+		if (isSequence(rx, uy, valueBoard) && ruAlive)
+		{
+			if (isValidP(rx, uy,valueBoard))
+				valueBoard[rx][uy]++;
+		}
 		else
 			ruAlive = false;
-		if (isValidP(rx, dy, valueBoard) && rdAlive)
-			valueBoard[rx][dy]++;
+		if (isSequence(rx, dy, valueBoard) && rdAlive)
+		{
+			if (isValidP(rx, dy,valueBoard))
+				valueBoard[rx][dy]++;
+		}
 		else
 			rdAlive = false;
-		if (isValidP(x, uy, valueBoard) && uAlive)
-			valueBoard[x][uy]++;
+		if (isSequence(x, uy, valueBoard) && uAlive)
+		{
+			if (isValidP(x, uy,valueBoard))
+				valueBoard[x][uy]++;
+		}
 		else
 			uAlive = false;
-		if (isValidP(x, dy, valueBoard) && dAlive)
-			valueBoard[x][dy]++;
+		if (isSequence(x, dy, valueBoard) && dAlive)
+		{
+			if (isValidP(x, dy,valueBoard))
+				valueBoard[x][dy]++;
+		}
 		else
 			dAlive = false;
-		if (isValidP(lx, y, valueBoard) && lAlive)
-			valueBoard[lx][y]++;
+		if (isSequence(lx, y, valueBoard) && lAlive)
+		{
+			if (isValidP(lx, y,valueBoard))
+				valueBoard[lx][y]++;
+		}
 		else
 			lAlive = false;
-		if (isValidP(lx, dy, valueBoard) && ldAlive)
-			valueBoard[lx][dy]++;
+		if (isSequence(lx, dy, valueBoard) && ldAlive)
+		{
+			if (isValidP(lx, dy,valueBoard))
+				valueBoard[lx][dy]++;
+		}
 		else
 			ldAlive = false;
-		if (isValidP(lx, uy, valueBoard) && luAlive)
-			valueBoard[lx][uy]++;
+		if (isSequence(lx, uy, valueBoard) && luAlive)
+		{
+			if (isValidP(lx, uy,valueBoard))
+				valueBoard[lx][uy]++;
+		}
 		else
 			luAlive = false;
 	}
@@ -261,6 +313,9 @@ void InitValue(int valueBoard[][19])
 }
 void ValueSet(int valueBoard[][19])
 {
+	fprintf(ValueLog, "\nnew Value Setter\n");
+
+
 	for (int x = 0; x < 19; x++)
 	{
 		for (int y = 0; y < 19; y++)
@@ -268,6 +323,7 @@ void ValueSet(int valueBoard[][19])
 			if (valueBoard[x][y] == MY_STONE || valueBoard[x][y] == BLOCK_STONE)
 			{
 				//점수를 분배한다.
+				fprintf(ValueLog,"( %d , %d ) is Value Spreader\n",x,y);
 				AddValue(x, y, valueBoard);
 			}
 		}
@@ -364,10 +420,12 @@ void Evaluate(int point[2], int valueBoard[][19])
 	MV = GetMV(valueBoard);
 	MQ = GetMQ(MV, valueBoard);
 	int maxPair[2] = { 0 };
-	//여기까지 이상 없음
+	
 	
 	lineUp = (expect*)malloc(sizeof(expect)*MQ);
 	fprintf(EvaLog, "\n\n----------------Expectation start----------------\n\n");
+	fprintf(ExpMax, "\n\n-------------original Board-------------------\n\n");
+	LogBoard(ExpMax, valueBoard);
 	for (int x = 0; x < 19; x++)
 	{
 		for (int y = 0; y < 19; y++)
@@ -379,11 +437,17 @@ void Evaluate(int point[2], int valueBoard[][19])
 				
 				lineUp[deployed].point[0] = x;
 				lineUp[deployed].point[1] = y;
-				InitValue(lineUp[deployed].expectBoard);
+				
+				CloneBoard(valueBoard, lineUp[deployed].expectBoard);
 				lineUp[deployed].expectBoard[x][y] = MY_STONE; //여기 중요!!
 				ValueSet(lineUp[deployed].expectBoard);
+				fprintf(ExpMax,"\n\n-------------expectBoard of deployed = %d-------------------\n\n", deployed);
+				LogBoard(ExpMax, lineUp[deployed].expectBoard);
 				lineUp[deployed].expectMax = GetMV(lineUp[deployed].expectBoard);
 				lineUp[deployed].expectQuan = GetMQ(lineUp[deployed].expectMax, lineUp[deployed].expectBoard);
+
+				fprintf(ExpMax, "( %d , %d )\nexpectMax = %d\nexpectQuan = %d\n\n", x, y,
+					lineUp[deployed].expectMax, lineUp[deployed].expectQuan);
 
 				fprintf(EvaLog, "( %d , %d )\nexpectMax = %d\nexpectQuan = %d\n\n", x, y,
 					lineUp[deployed].expectMax, lineUp[deployed].expectQuan);
@@ -482,16 +546,7 @@ void myturn(int cnt)
 		}
 		
 		
-		for (int x = 0; x < 19; x++)
-		{
-			for (int y = 0; y < 19; y++)
-			{
-				if (myValue[x][y] < 0)
-					myValue2[x][y] = myValue[x][y];
-				else
-					myValue2[x][y] = 0;
-			}
-		}
+		CloneBoard(myValue, myValue2);
 
 	
 
@@ -521,17 +576,7 @@ void myturn(int cnt)
 			x[1] = secondPoint[0];
 			y[1] = secondPoint[1];
 		}
-
-		for (int x = 0; x < 19; x++)
-		{
-			for (int y = 0; y < 19; y++)
-			{
-				if (myValue2[x][y] < 0)
-					finalValue[x][y] = myValue2[x][y];
-				else
-					finalValue[x][y] = 0;
-			}
-		}
+		CloneBoard(myValue2, finalValue);
 		finalValue[secondPoint[0]][secondPoint[1]] = -1;
 
 		ValueSet(finalValue);
