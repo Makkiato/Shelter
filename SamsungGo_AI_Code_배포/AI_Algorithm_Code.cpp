@@ -299,56 +299,56 @@ void AddValue(int x, int y, int valueBoard[][19])
 		int dy = y + i;
 		if (isSequence(rx, y, valueBoard) && rAlive)
 		{
-			if (valueBoard[rx][y] >= 0)
+			if (valueBoard[rx][y] >= 0 && valueBoard[rx][y] < 4)
 				valueBoard[rx][y]++;
 		}
 		else
 			rAlive = false;
 		if (isSequence(rx, uy, valueBoard) && ruAlive)
 		{
-			if (valueBoard[rx][uy] >= 0)
+			if (valueBoard[rx][uy] >= 0 && valueBoard[rx][uy] < 4)
 				valueBoard[rx][uy]++;
 		}
 		else
 			ruAlive = false;
 		if (isSequence(rx, dy, valueBoard) && rdAlive)
 		{
-			if (valueBoard[rx][dy] >= 0)
+			if (valueBoard[rx][dy] >= 0 && valueBoard[rx][dy] < 4)
 				valueBoard[rx][dy]++;
 		}
 		else
 			rdAlive = false;
 		if (isSequence(x, uy, valueBoard) && uAlive)
 		{
-			if (valueBoard[x][uy] >= 0)
+			if (valueBoard[x][uy] >= 0 && valueBoard[x][uy] < 4)
 				valueBoard[x][uy]++;
 		}
 		else
 			uAlive = false;
 		if (isSequence(x, dy, valueBoard) && dAlive)
 		{
-			if (valueBoard[x][dy] >= 0)
+			if (valueBoard[x][dy] >= 0 && valueBoard[x][dy] < 4)
 				valueBoard[x][dy]++;
 		}
 		else
 			dAlive = false;
 		if (isSequence(lx, y, valueBoard) && lAlive)
 		{
-			if (valueBoard[lx][y] >= 0)
+			if (valueBoard[lx][y] >= 0 && valueBoard[lx][y] < 4)
 				valueBoard[lx][y]++;
 		}
 		else
 			lAlive = false;
 		if (isSequence(lx, dy, valueBoard) && ldAlive)
 		{
-			if (valueBoard[lx][dy] >= 0)
+			if (valueBoard[lx][dy] >= 0 && valueBoard[lx][dy] < 4)
 				valueBoard[lx][dy]++;
 		}
 		else
 			ldAlive = false;
 		if (isSequence(lx, uy, valueBoard) && luAlive)
 		{
-			if (valueBoard[lx][uy] >= 0)
+			if (valueBoard[lx][uy] >= 0 && valueBoard[lx][uy] < 4)
 				valueBoard[lx][uy]++;
 		}
 		else
@@ -491,6 +491,8 @@ void Evaluate(int point[2], int valueBoard[][19])
 	int deployed = 0;
 	MV = GetMV(valueBoard);
 	MQ = GetMQ(MV, valueBoard);
+	if (MV > 1)
+		MQ += GetMQ(MV - 1, valueBoard);
 	int maxPair[2] = { 0 };
 	int iterMin = 0;
 	int iterMax = 19;
@@ -510,7 +512,7 @@ void Evaluate(int point[2], int valueBoard[][19])
 		for (int y = iterMin; y < iterMax; y++)
 		{
 			int target = valueBoard[x][y];
-			if (target == MV)
+			if (target == MV || (target == MV - 1 && MV > 1))
 			{
 
 
