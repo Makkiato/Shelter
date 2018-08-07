@@ -80,12 +80,13 @@ void LogBoard(FILE* logFP, int valueBoard[][19])
 }
 void InitLog()
 {
+	DefenceLog = fopen("./DefenceLog.txt", "a");
 	EvaLog = fopen("./EvaLog.txt", "a");
 	ScanLog = fopen("./ScanLog.txt", "a");
 	BoardLog = fopen("./BoardLog.txt", "a");
 	ExpMax = fopen("./ExpMax.txt", "a");
 	ValueLog = fopen("./ValueLog.txt", "a");
-	DefenceLog = fopen("./DefenceLog.txt", "a");
+	
 }
 
 void TermLog()
@@ -132,7 +133,7 @@ int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone)
 		else if (valueBoard[x + i * dx][y + i * dy] == exceptStone)
 		{
 			count = 0;
-
+			break;
 		}
 	}
 	if (OutOfBound(x + 5 * dx, y + 5 * dy))
@@ -229,7 +230,7 @@ void AddValue(int x, int y, int valueBoard[][19])
 	boolean rdAlive = true;
 	boolean luAlive = true;
 	boolean ldAlive = true;
-
+	
 
 	for (int i = 1; i < 6; i++)
 	{
@@ -373,7 +374,8 @@ int EvaluateFinish(int point[2], int valueBoard[][19], int exceptStone)
 						dy = 1;
 					else
 						dy = 0;
-
+					
+					fprintf(DefenceLog, " point : ( %d , %d )\ndirection : ( %d , %d )\n", x, y, dx, dy);
 					distance = ScanEmpty(x, y, dx, dy, valueBoard);
 					if (isValidP(x + distance * dx, y + distance * dy, valueBoard))
 					{
@@ -522,8 +524,11 @@ void myturn(int cnt)
 	int oppoValue2[19][19] = { 0 };
 	int firstPoint[2] = { 0 };
 	int secondPoint[2] = { 0 };
+	int tmpPoint[2] = { 0 };
 	boolean firstOppoFin = false;
 	boolean firstMyFin = false;
+	boolean secondOppoFin = false;
+	boolean secondMyFin = false;
 	int myNum = 0;
 
 	InitLog();
@@ -543,10 +548,14 @@ void myturn(int cnt)
 		if (x[1] == x[0] && y[1] == y[0]) i--;
 		}*/
 		firstMyFin = EvaluateFinish(firstPoint, myValue, OPPO_STONE) == FIND_FINISH;
+		tmpPoint[0] = firstPoint[0];
+		tmpPoint[1] = firstPoint[1];
 		firstOppoFin = EvaluateFinish(firstPoint, myValue, MY_STONE) == FIND_FINISH;
 		if (firstMyFin)
 		{
 
+			firstPoint[0] = tmpPoint[0];
+			firstPoint[1] = tmpPoint[1];
 			x[0] = firstPoint[0];
 			y[0] = firstPoint[1];
 
@@ -558,33 +567,10 @@ void myturn(int cnt)
 		}
 		else
 		{
-			if (false)//myNum == 0
-			{
-				if (isFree(7, 7))
-				{
-					x[0] = 7;
-					y[0] = 7;
-				}
-				else if (isFree(8, 8))
-				{
+			Evaluate(firstPoint, myValue);
+			x[0] = firstPoint[0];
+			y[0] = firstPoint[1];
 
-					x[0] = 8;
-					y[0] = 8;
-				}
-				else if (isFree(9, 9))
-				{
-					x[0] = 9;
-					y[0] = 9;
-				}
-				firstPoint[0] = x[0];
-				firstPoint[1] = y[0];
-			}
-			else
-			{
-				Evaluate(firstPoint, myValue);
-				x[0] = firstPoint[0];
-				y[0] = firstPoint[1];
-			}
 		}
 
 
@@ -598,10 +584,20 @@ void myturn(int cnt)
 		else if (firstMyFin)
 		myValue2[firstPoint[0]][firstPoint[1]] = -2;
 		*/
+		secondMyFin = EvaluateFinish(secondPoint, myValue2, OPPO_STONE) == FIND_FINISH;
+		tmpPoint[0] = secondPoint[0];
+		tmpPoint[1] = secondPoint[1];
+		secondOppoFin = EvaluateFinish(secondPoint, myValue2, MY_STONE) == FIND_FINISH;
 
-
-		if (EvaluateFinish(secondPoint, myValue2, OPPO_STONE) == FIND_FINISH)
+		if (secondOppoFin && (firstOppoFin && !firstMyFin))
 		{
+			x[1] = secondPoint[0];
+			y[1] = secondPoint[1];
+		}
+		else if (EvaluateFinish(secondPoint, myValue2, OPPO_STONE) == FIND_FINISH)
+		{
+			secondPoint[0] = tmpPoint[0];
+			secondPoint[1] = tmpPoint[1];
 			x[1] = secondPoint[0];
 			y[1] = secondPoint[1];
 		}
@@ -616,6 +612,7 @@ void myturn(int cnt)
 			x[1] = secondPoint[0];
 			y[1] = secondPoint[1];
 		}
+
 		CloneBoard(myValue2, finalValue);
 		finalValue[secondPoint[0]][secondPoint[1]] = -1;
 
