@@ -1,7 +1,5 @@
 
 
-//TODO expectMax 제대로 계산 못함
-
 #include <stdio.h>
 #include <Windows.h>
 #include <time.h>
@@ -10,6 +8,7 @@
 #define MY_STONE -1
 #define OPPO_STONE -2
 #define BLOCK_STONE -3
+#define ABANDONED -4
 
 
 #define ELE_R 2
@@ -36,6 +35,7 @@ FILE* EvaLog;
 FILE* ExpMax;
 FILE* ValueLog;
 FILE* DefenceLog;
+FILE* SevenLog;
 
 typedef struct expect
 {
@@ -80,10 +80,12 @@ void LogBoard(FILE* logFP, int valueBoard[][19])
 }
 void InitLog()
 {
+	BoardLog = fopen("./BoardLog.txt", "a");
+	SevenLog = fopen("./SevenLog.txt", "a");
 	DefenceLog = fopen("./DefenceLog.txt", "a");
 	EvaLog = fopen("./EvaLog.txt", "a");
 	ScanLog = fopen("./ScanLog.txt", "a");
-	BoardLog = fopen("./BoardLog.txt", "a");
+	
 	ExpMax = fopen("./ExpMax.txt", "a");
 	ValueLog = fopen("./ValueLog.txt", "a");
 	
@@ -91,6 +93,7 @@ void InitLog()
 
 void TermLog()
 {
+	fclose(SevenLog);
 	fclose(DefenceLog);
 	fclose(ValueLog);
 	fclose(EvaLog);
@@ -98,30 +101,17 @@ void TermLog()
 	fclose(BoardLog);
 	fclose(ExpMax);
 }
-
-
 boolean OutOfBound(int x, int y)
 {
 	fprintf(ScanLog, "Out of Bound! : ( %d , %d ) \n", x, y);
 	return (x < 0 || x>18 || y < 0 || y>18);
 }
-
-boolean isSequence(int x, int y, int valueBoard[][19])
-{
-	return ((valueBoard[x][y] >= 0) || valueBoard[x][y] == -1 || valueBoard[x][y] == -3) && !OutOfBound(x, y);
-}
-
-boolean isValidP(int x, int y, int valueBoard[][19])
-{
-	return !OutOfBound(x, y) && (valueBoard[x][y] >= 0);
-}
-
-int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone)
+int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone, int howLong)
 {
 	int count = 0;
-	int heading = 0;
+	
 	fprintf(ScanLog, "Standard Point : ( %d , %d ) \n", x, y);
-	for (int i = 1; i < 6; i++)
+	for (int i = 1; i < howLong + 1; i++)
 	{
 		if (valueBoard[x + i * dx][y + i * dy] != exceptStone && valueBoard[x + i * dx][y + i * dy] < 0)
 		{
@@ -143,27 +133,96 @@ int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone)
 	}
 	return count;
 }
+int SevenOnlyScan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone, int howLong)
+{
+	int count = 0;
+	
+	fprintf(ScanLog, "Standard Point : ( %d , %d ) \n", x, y);
+	for (int i = 1; i < howLong + 1; i++)
+	{
+		if (valueBoard[x + i * dx][y + i * dy] != exceptStone &&  valueBoard[x + i * dx][y + i * dy] < 0)
+		{
+			count++;
+			fprintf(ScanLog, "Checked on with i : %d ! : ( %d , %d ) \n", i, x + i * dx, y + i * dy);
+
+		}
+
+		else if (valueBoard[x + i * dx][y + i * dy] == exceptStone || valueBoard[x + i * dx][y + i * dy] >= 0)
+		{
+			
+			break;
+		}
+	}
+	return count;
+}
+
+boolean isSevenInRow(int point[2], int valueBoard[][19],int exceptStone)
+{
+	//우측
+	int countR = SevenOnlyScan(point[0], point[1], 1, 0, valueBoard, exceptStone, 6);
+	//좌측
+	int countL = SevenOnlyScan(point[0], point[1], -1, 0, valueBoard, exceptStone, 6);
+	//상측
+	int countU = SevenOnlyScan(point[0], point[1], 0, -1, valueBoard, exceptStone, 6);
+	//하측
+	int countD = SevenOnlyScan(point[0], point[1], 0, 1, valueBoard, exceptStone, 6);
+	//우상측
+	int countRU = SevenOnlyScan(point[0], point[1], 1, -1, valueBoard, exceptStone, 6);
+	//우하측
+	int countRD = SevenOnlyScan(point[0], point[1], 1, 1, valueBoard, exceptStone, 6);
+	//좌상측
+	int countLU = SevenOnlyScan(point[0], point[1], -1, -1, valueBoard, exceptStone, 6);
+	//좌하측
+	int countLD = SevenOnlyScan(point[0], point[1], -1, 1, valueBoard, exceptStone, 6);
+
+	int countHor = countL + countR;
+	int countVer = countU + countD;
+	int countDia1 = countLU + countRD;
+	int countDia2 = countLD + countRU;
+	fprintf(SevenLog, "\nAT ( %d , %d ) Hor : %d , Ver : %d , Dia1 : %d , Dia2 : %d\n\n", point[0], point[1], countHor, countVer, countDia1, countDia2);
+
+	if (countHor > 5 || countVer > 5 || countDia1 > 5 || countDia2 > 5)
+	{
+		return true;
+	}
+	else
+		return false;
+}
+
+
+
+boolean isSequence(int x, int y, int valueBoard[][19])
+{
+	return ((valueBoard[x][y] >= 0) || valueBoard[x][y] == -1 || valueBoard[x][y] == -3) && !OutOfBound(x, y);
+}
+
+boolean isValidP(int x, int y, int valueBoard[][19])
+{
+	return !OutOfBound(x, y) && (valueBoard[x][y] >= 0);
+}
+
+
 
 int ScanFinish(int x, int y, int valueBoard[][19], int exceptStone)
 {
 
 
 	//우측
-	int countR = Scan(x, y, 1, 0, valueBoard, exceptStone);
+	int countR = Scan(x, y, 1, 0, valueBoard, exceptStone, 5);
 	//좌측
-	int countL = Scan(x, y, -1, 0, valueBoard, exceptStone);
+	int countL = Scan(x, y, -1, 0, valueBoard, exceptStone, 5);
 	//상측
-	int countU = Scan(x, y, 0, -1, valueBoard, exceptStone);
+	int countU = Scan(x, y, 0, -1, valueBoard, exceptStone, 5);
 	//하측
-	int countD = Scan(x, y, 0, 1, valueBoard, exceptStone);
+	int countD = Scan(x, y, 0, 1, valueBoard, exceptStone, 5);
 	//우상측
-	int countRU = Scan(x, y, 1, -1, valueBoard, exceptStone);
+	int countRU = Scan(x, y, 1, -1, valueBoard, exceptStone, 5);
 	//우하측
-	int countRD = Scan(x, y, 1, 1, valueBoard, exceptStone);
+	int countRD = Scan(x, y, 1, 1, valueBoard, exceptStone, 5);
 	//좌상측
-	int countLU = Scan(x, y, -1, -1, valueBoard, exceptStone);
+	int countLU = Scan(x, y, -1, -1, valueBoard, exceptStone, 5);
 	//좌하측
-	int countLD = Scan(x, y, -1, 1, valueBoard, exceptStone);
+	int countLD = Scan(x, y, -1, 1, valueBoard, exceptStone, 5);
 
 	if (countR >= 3)
 	{
@@ -510,7 +569,10 @@ void Evaluate(int point[2], int valueBoard[][19])
 
 }
 
-
+boolean isNextSeven(int firstpoint[2], int valueBoard[][19])
+{
+	return true;
+}
 
 void myturn(int cnt)
 {
@@ -524,125 +586,249 @@ void myturn(int cnt)
 	int oppoValue2[19][19] = { 0 };
 	int firstPoint[2] = { 0 };
 	int secondPoint[2] = { 0 };
-	int tmpPoint[2] = { 0 };
+	int APoint1[2] = { 0 };
+	int APoint2[2] = { 0 };
+	int DPoint1[2] = { 0 };
+	int DPoint2[2] = { 0 };
+	int VPoint1[2] = { 0 };
+	int VPoint2[2] = { 0 };
+	
 	boolean firstOppoFin = false;
 	boolean firstMyFin = false;
 	boolean secondOppoFin = false;
 	boolean secondMyFin = false;
-	int myNum = 0;
+	boolean seven = false;
+	
 
 	InitLog();
+
 	if (!terminateAI)
 	{
-		myNum = InitValue(myValue);
+		//첫번째 보드 초기화
+		InitValue(myValue);
+		//점수를 주자
 		ValueSet(myValue);
-		LogBoard(BoardLog, myValue);
-		/*
-		srand((unsigned)time(NULL));
-		for (int i = 0; i < cnt; i++) {
-		do {
-		x[i] = rand() % width;
-		y[i] = rand() % height;
-		if (terminateAI) return;
-		} while (!isFree(x[i], y[i]));
-		if (x[1] == x[0] && y[1] == y[0]) i--;
-		}*/
-		firstMyFin = EvaluateFinish(firstPoint, myValue, OPPO_STONE) == FIND_FINISH;
-		tmpPoint[0] = firstPoint[0];
-		tmpPoint[1] = firstPoint[1];
-		firstOppoFin = EvaluateFinish(firstPoint, myValue, MY_STONE) == FIND_FINISH;
-		if (firstMyFin)
-		{
 
-			firstPoint[0] = tmpPoint[0];
-			firstPoint[1] = tmpPoint[1];
-			x[0] = firstPoint[0];
-			y[0] = firstPoint[1];
+		//당장에 긴급상황 검사를 다 시행하고 저장
+		firstMyFin = EvaluateFinish(APoint1, myValue, OPPO_STONE) == FIND_FINISH;
+		firstOppoFin = EvaluateFinish(DPoint1, myValue, MY_STONE) == FIND_FINISH;
 
-		}
-		else if (firstOppoFin)
+		//내 단독승리
+		if (firstMyFin && !firstOppoFin)
 		{
-			x[0] = firstPoint[0];
-			y[0] = firstPoint[1];
+			seven = isSevenInRow(APoint1, myValue, OPPO_STONE);
+
+			if (seven)
+				goto PEACE;
+
+			CloneBoard(myValue, myValue2);
+			myValue2[APoint1[0]][APoint1[1]] = MY_STONE;
+			ValueSet(myValue2);
+			secondMyFin = EvaluateFinish(APoint2, myValue2, OPPO_STONE) == FIND_FINISH;
+			//내 승리로 끝내는 수가 보이면
+
+			seven = isSevenInRow(APoint2, myValue2, MY_STONE);
+			if (seven)
+				goto PEACE;
+
+			x[0] = APoint1[0];
+			x[1] = APoint2[0];
+			y[0] = APoint1[1];
+			y[1] = APoint2[1];
 		}
+		//상대 단독승리
+		else if (!firstMyFin && firstOppoFin)
+		{
+			seven = isSevenInRow(DPoint1, myValue, OPPO_STONE);
+
+			if (seven)
+				goto PEACE;
+
+			CloneBoard(myValue, myValue2);
+			myValue2[DPoint1[0]][DPoint1[1]] = MY_STONE;
+			ValueSet(myValue2);
+			secondOppoFin = EvaluateFinish(DPoint2, myValue2, MY_STONE) == FIND_FINISH;
+			//상대 단독 승리 상황 유지시....
+			if (secondOppoFin)
+			{
+				seven = isSevenInRow(DPoint2, myValue2, MY_STONE);
+				if(seven)
+					goto PEACE;
+
+				x[0] = DPoint1[0];
+				x[1] = DPoint2[0];
+				y[0] = DPoint1[1];
+				y[1] = DPoint2[1];
+			}
+			//앞의 한 수로 방어 성공했으니 하고 싶은데로 해
+			else
+			{
+				do {
+					Evaluate(VPoint2, myValue2);
+					seven = isSevenInRow(VPoint2, myValue2, OPPO_STONE);
+					if (seven)
+					{
+						myValue2[VPoint2[0]][VPoint2[1]] = 0;
+					}
+				} while (seven);
+				x[0] = DPoint1[0];
+				x[1] = VPoint2[0];
+				y[0] = DPoint1[1];
+				y[1] = VPoint2[1];
+			}
+		}
+		//양측 공동승리
+		else if (firstMyFin && firstOppoFin)
+		{
+			boolean atkMod = true;
+			boolean sevenA = false;
+			boolean sevenD = false;
+			sevenA = isSevenInRow(APoint1,myValue,OPPO_STONE);
+			sevenD = isSevenInRow(DPoint1,myValue,OPPO_STONE);
+			if (sevenA && sevenD)
+				goto PEACE;
+			else if (!sevenA)
+			{
+				atkMod = true;
+			}
+			else if (!sevenD)
+			{
+				atkMod == false;
+			}
+
+			CloneBoard(myValue, myValue2);
+
+			if (atkMod)
+			{
+				myValue2[APoint1[0]][APoint1[1]] = MY_STONE;
+				ValueSet(myValue);
+
+				secondMyFin = EvaluateFinish(APoint2, myValue2, OPPO_STONE) == FIND_FINISH;;
+				
+				seven = isSevenInRow(APoint2, myValue2,OPPO_STONE);
+				if (seven)
+					goto DEFMOD;
+
+				x[0] = APoint1[0];
+				x[1] = APoint2[0];
+				y[0] = APoint1[1];
+				y[1] = APoint2[1];
+
+			}
+
+			else
+			{
+			DEFMOD :
+				myValue2[DPoint1[0]][DPoint1[1]] = MY_STONE;
+				ValueSet(myValue);
+
+				secondOppoFin = EvaluateFinish(DPoint2, myValue2, OPPO_STONE) == FIND_FINISH;
+
+				seven = isSevenInRow(DPoint2, myValue2, OPPO_STONE);
+				//방어 후 추가 방어 필요
+				if (secondOppoFin && !seven)
+				{
+					x[0] = DPoint1[0];
+					x[1] = DPoint2[0];
+					y[0] = DPoint1[1];
+					y[1] = DPoint2[1];
+				}
+				//방어 하고 싶어도 못해
+				else if (seven)
+				{
+					goto PEACE;
+				}
+				//이미 다 방어 했으니 하고 싶은데 해
+				else
+				{
+					do {
+						Evaluate(VPoint2, myValue2);
+						seven = isSevenInRow(VPoint2, myValue2, OPPO_STONE);
+						if (seven)
+						{
+							myValue2[VPoint2[0]][VPoint2[1]] = 0;
+						}
+					} while (seven);
+
+					x[0] = DPoint1[0];
+					x[1] = VPoint2[0];
+					y[0] = DPoint1[1];
+					y[1] = VPoint2[1];
+				}
+			}
+			
+		}
+		//평화의 시대
 		else
 		{
-			Evaluate(firstPoint, myValue);
-			x[0] = firstPoint[0];
-			y[0] = firstPoint[1];
+
+			PEACE :
+			do {
+				Evaluate(VPoint1, myValue);
+				seven = isSevenInRow(VPoint1, myValue, OPPO_STONE);
+				if (seven)
+				{
+					myValue[VPoint1[0]][VPoint1[1]] = 0;
+				}
+			} while (seven);
+
+			CloneBoard(myValue, myValue2);
+			myValue2[VPoint1[0]][VPoint1[1]] = MY_STONE;
+			ValueSet(myValue2);
+			do {
+				Evaluate(VPoint2, myValue2);
+				seven = isSevenInRow(VPoint2, myValue2, OPPO_STONE);
+				if (seven)
+				{
+					myValue2[VPoint2[0]][VPoint2[1]] = 0;
+				}
+			} while (seven);
+
+			x[0] = VPoint1[0];
+			x[1] = VPoint2[0];
+			y[0] = VPoint1[1];
+			y[1] = VPoint2[1];
 
 		}
-
-
-		CloneBoard(myValue, myValue2);
-
-		myValue2[firstPoint[0]][firstPoint[1]] = -1;
-
-		ValueSet(myValue2);
-
 		/*
-		else if (firstMyFin)
-		myValue2[firstPoint[0]][firstPoint[1]] = -2;
+		긴급상황 검사를 한 점과 그 이후에 둘 두번째 점을 칠목 검사하자.
+		우선 검사 순위는
+
+		내승	내승	-> 공격		7목 발생시 아예 제외
+		적승	양승	-> 방어		7목 발생시 아예 제외
+		적승	적승	-> 방어		7목 발생시 아예 제외
+
+		양승	양승	-> 공격		7목 발생시 방어
+		이벨	내승	-> 무시		이벨	이벨로 이동
+		이벨	이벨	-> 7목 발생시 재시도
 		*/
-		secondMyFin = EvaluateFinish(secondPoint, myValue2, OPPO_STONE) == FIND_FINISH;
-		tmpPoint[0] = secondPoint[0];
-		tmpPoint[1] = secondPoint[1];
-		secondOppoFin = EvaluateFinish(secondPoint, myValue2, MY_STONE) == FIND_FINISH;
-
-		if (secondOppoFin && (firstOppoFin && !firstMyFin))
-		{
-			x[1] = secondPoint[0];
-			y[1] = secondPoint[1];
-		}
-		else if (EvaluateFinish(secondPoint, myValue2, OPPO_STONE) == FIND_FINISH)
-		{
-			secondPoint[0] = tmpPoint[0];
-			secondPoint[1] = tmpPoint[1];
-			x[1] = secondPoint[0];
-			y[1] = secondPoint[1];
-		}
-		else if (EvaluateFinish(secondPoint, myValue2, MY_STONE) == FIND_FINISH)
-		{
-			x[1] = secondPoint[0];
-			y[1] = secondPoint[1];
-		}
-		else
-		{
-			Evaluate(secondPoint, myValue2);
-			x[1] = secondPoint[0];
-			y[1] = secondPoint[1];
-		}
-
-		CloneBoard(myValue2, finalValue);
-		finalValue[secondPoint[0]][secondPoint[1]] = -1;
-
-		ValueSet(finalValue);
 
 
-		fprintf(BoardLog, "\n\n-------------------myValue1--------------\n\n");
-		LogBoard(BoardLog, myValue);
-
-		fprintf(BoardLog, "\n\n-------------------myValue2--------------\n\n");
-		LogBoard(BoardLog, myValue2);
-		fprintf(BoardLog, "\n\n-------------------finalValue2--------------\n\n");
-		LogBoard(BoardLog, finalValue);
-
-
-
-
-
-		TermLog();
-
-		// 이 부분에서 알고리즘 프로그램(AI)을 작성하십시오. 기본 제공된 코드를 수정 또는 삭제하고 본인이 코드를 사용하시면 됩니다.
-		// 현재 Sample code의 AI는 Random으로 돌을 놓는 Algorithm이 작성되어 있습니다
-
-
-
-		// 이 부분에서 자신이 놓을 돌을 출력하십시오.
-		// 필수 함수 : domymove(x배열,y배열,배열크기)
-		// 여기서 배열크기(cnt)는 myturn()의 파라미터 cnt를 그대로 넣어야합니다.
-
-
-		domymove(x, y, cnt);
 	}
+
+	fprintf(BoardLog, "\n\n-------------------myValue1--------------\n\n");
+	LogBoard(BoardLog, myValue);
+
+	fprintf(BoardLog, "\n\n-------------------myValue2--------------\n\n");
+	LogBoard(BoardLog, myValue2);
+	CloneBoard(myValue2, finalValue);
+	finalValue[x[1]][y[1]] = MY_STONE;
+	fprintf(BoardLog, "\n\n-------------------finalValue--------------\n\n");
+
+	LogBoard(BoardLog, finalValue);
+
+
+	TermLog();
+
+	// 이 부분에서 알고리즘 프로그램(AI)을 작성하십시오. 기본 제공된 코드를 수정 또는 삭제하고 본인이 코드를 사용하시면 됩니다.
+	// 현재 Sample code의 AI는 Random으로 돌을 놓는 Algorithm이 작성되어 있습니다
+
+
+
+	// 이 부분에서 자신이 놓을 돌을 출력하십시오.
+	// 필수 함수 : domymove(x배열,y배열,배열크기)
+	// 여기서 배열크기(cnt)는 myturn()의 파라미터 cnt를 그대로 넣어야합니다.
+
+
+	domymove(x, y, cnt);
 }
