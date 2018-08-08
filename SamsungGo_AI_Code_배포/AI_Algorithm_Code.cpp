@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <Windows.h>
 #include <time.h>
+#include <math.h>
 #include "Connect6Algo.h"
 
 #define MY_STONE -1
@@ -39,10 +40,12 @@ FILE* SevenLog;
 
 typedef struct expect
 {
+	int distance = 0;
 	int expectMax = 0;
 	int expectQuan = 0;
 	int point[2] = { 0 };
 	int expectBoard[19][19] = { 0 };
+	
 } expect;
 
 
@@ -85,10 +88,10 @@ void InitLog()
 	DefenceLog = fopen("./DefenceLog.txt", "a");
 	EvaLog = fopen("./EvaLog.txt", "a");
 	ScanLog = fopen("./ScanLog.txt", "a");
-	
+
 	ExpMax = fopen("./ExpMax.txt", "a");
 	ValueLog = fopen("./ValueLog.txt", "a");
-	
+
 }
 
 void TermLog()
@@ -109,7 +112,7 @@ boolean OutOfBound(int x, int y)
 int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone, int howLong)
 {
 	int count = 0;
-	
+
 	fprintf(ScanLog, "Standard Point : ( %d , %d ) \n", x, y);
 	for (int i = 1; i < howLong + 1; i++)
 	{
@@ -136,11 +139,11 @@ int Scan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone, in
 int SevenOnlyScan(int x, int y, int dx, int dy, int valueBoard[][19], int exceptStone, int howLong)
 {
 	int count = 0;
-	
+
 	fprintf(ScanLog, "Standard Point : ( %d , %d ) \n", x, y);
 	for (int i = 1; i < howLong + 1; i++)
 	{
-		if (valueBoard[x + i * dx][y + i * dy] != exceptStone &&  valueBoard[x + i * dx][y + i * dy] < 0)
+		if (valueBoard[x + i * dx][y + i * dy] != exceptStone && valueBoard[x + i * dx][y + i * dy] < 0)
 		{
 			count++;
 			fprintf(ScanLog, "Checked on with i : %d ! : ( %d , %d ) \n", i, x + i * dx, y + i * dy);
@@ -149,14 +152,14 @@ int SevenOnlyScan(int x, int y, int dx, int dy, int valueBoard[][19], int except
 
 		else if (valueBoard[x + i * dx][y + i * dy] == exceptStone || valueBoard[x + i * dx][y + i * dy] >= 0)
 		{
-			
+
 			break;
 		}
 	}
 	return count;
 }
 
-boolean isSevenInRow(int point[2], int valueBoard[][19],int exceptStone)
+boolean isSevenInRow(int point[2], int valueBoard[][19], int exceptStone)
 {
 	//우측
 	int countR = SevenOnlyScan(point[0], point[1], 1, 0, valueBoard, exceptStone, 6);
@@ -289,7 +292,7 @@ void AddValue(int x, int y, int valueBoard[][19])
 	boolean rdAlive = true;
 	boolean luAlive = true;
 	boolean ldAlive = true;
-	
+
 
 	for (int i = 1; i < 6; i++)
 	{
@@ -433,7 +436,7 @@ int EvaluateFinish(int point[2], int valueBoard[][19], int exceptStone)
 						dy = 1;
 					else
 						dy = 0;
-					
+
 					fprintf(DefenceLog, " point : ( %d , %d )\ndirection : ( %d , %d )\n", x, y, dx, dy);
 					distance = ScanEmpty(x, y, dx, dy, valueBoard);
 					if (isValidP(x + distance * dx, y + distance * dy, valueBoard))
@@ -483,6 +486,11 @@ int GetMQ(int maximum, int valueBoard[][19])
 	return quantity;
 }
 
+int GetDistance(int x, int y, int toX, int toY)
+{
+	return (abs(x - toX)+abs(y - toY));
+}
+
 void Evaluate(int point[2], int valueBoard[][19])
 {
 	expect* lineUp;
@@ -491,11 +499,12 @@ void Evaluate(int point[2], int valueBoard[][19])
 	int deployed = 0;
 	MV = GetMV(valueBoard);
 	MQ = GetMQ(MV, valueBoard);
-	if (MV > 1)
+	if (MV > 3)
 		MQ += GetMQ(MV - 1, valueBoard);
-	int maxPair[2] = { 0 };
+	int maxPair[3] = { 0 };
 	int iterMin = 0;
 	int iterMax = 19;
+	maxPair[2] = 100;
 	if (MV == 0 && MQ > 81)
 	{
 		//내가 놓는 첫번째 돌이면.
@@ -512,13 +521,13 @@ void Evaluate(int point[2], int valueBoard[][19])
 		for (int y = iterMin; y < iterMax; y++)
 		{
 			int target = valueBoard[x][y];
-			if (target == MV || (target == MV - 1 && MV > 1))
+			if (target == MV || (target == MV - 1 && MV > 3))
 			{
 
 
 				lineUp[deployed].point[0] = x;
 				lineUp[deployed].point[1] = y;
-
+				lineUp[deployed].distance = GetDistance(x, y, 9, 9);
 				CloneBoard(valueBoard, lineUp[deployed].expectBoard);
 				lineUp[deployed].expectBoard[x][y] = MY_STONE; //여기 중요!!
 				ValueSet(lineUp[deployed].expectBoard);
@@ -546,6 +555,12 @@ void Evaluate(int point[2], int valueBoard[][19])
 					if (maxPair[1] < lineUp[deployed].expectQuan)
 					{
 						maxPair[1] = lineUp[deployed].expectQuan;
+						point[0] = x;
+						point[1] = y;
+					}
+					else if (maxPair[1] == lineUp[deployed].expectQuan && maxPair[2] > lineUp[deployed].distance)
+					{
+						maxPair[2] = lineUp[deployed].distance;
 						point[0] = x;
 						point[1] = y;
 					}
@@ -594,13 +609,13 @@ void myturn(int cnt)
 	int DPoint2[2] = { 0 };
 	int VPoint1[2] = { 0 };
 	int VPoint2[2] = { 0 };
-	
+
 	boolean firstOppoFin = false;
 	boolean firstMyFin = false;
 	boolean secondOppoFin = false;
 	boolean secondMyFin = false;
 	boolean seven = false;
-	
+
 
 	InitLog();
 
@@ -654,7 +669,7 @@ void myturn(int cnt)
 			if (secondOppoFin)
 			{
 				seven = isSevenInRow(DPoint2, myValue2, MY_STONE);
-				if(seven)
+				if (seven)
 					goto PEACE;
 
 				x[0] = DPoint1[0];
@@ -685,8 +700,8 @@ void myturn(int cnt)
 			boolean atkMod = true;
 			boolean sevenA = false;
 			boolean sevenD = false;
-			sevenA = isSevenInRow(APoint1,myValue,OPPO_STONE);
-			sevenD = isSevenInRow(DPoint1,myValue,OPPO_STONE);
+			sevenA = isSevenInRow(APoint1, myValue, OPPO_STONE);
+			sevenD = isSevenInRow(DPoint1, myValue, OPPO_STONE);
 			if (sevenA && sevenD)
 				goto PEACE;
 			else if (!sevenA)
@@ -706,8 +721,8 @@ void myturn(int cnt)
 				ValueSet(myValue);
 
 				secondMyFin = EvaluateFinish(APoint2, myValue2, OPPO_STONE) == FIND_FINISH;;
-				
-				seven = isSevenInRow(APoint2, myValue2,OPPO_STONE);
+
+				seven = isSevenInRow(APoint2, myValue2, OPPO_STONE);
 				if (seven)
 					goto DEFMOD;
 
@@ -720,7 +735,7 @@ void myturn(int cnt)
 
 			else
 			{
-			DEFMOD :
+			DEFMOD:
 				myValue2[DPoint1[0]][DPoint1[1]] = MY_STONE;
 				ValueSet(myValue);
 
@@ -758,13 +773,13 @@ void myturn(int cnt)
 					y[1] = VPoint2[1];
 				}
 			}
-			
+
 		}
 		//평화의 시대
 		else
 		{
 
-			PEACE :
+		PEACE:
 			do {
 				Evaluate(VPoint1, myValue);
 				seven = isSevenInRow(VPoint1, myValue, OPPO_STONE);
@@ -795,11 +810,9 @@ void myturn(int cnt)
 		/*
 		긴급상황 검사를 한 점과 그 이후에 둘 두번째 점을 칠목 검사하자.
 		우선 검사 순위는
-
 		내승	내승	-> 공격		7목 발생시 아예 제외
 		적승	양승	-> 방어		7목 발생시 아예 제외
 		적승	적승	-> 방어		7목 발생시 아예 제외
-
 		양승	양승	-> 공격		7목 발생시 방어
 		이벨	내승	-> 무시		이벨	이벨로 이동
 		이벨	이벨	-> 7목 발생시 재시도
