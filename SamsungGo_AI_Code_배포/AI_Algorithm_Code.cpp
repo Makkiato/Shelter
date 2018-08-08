@@ -5,7 +5,7 @@
 #include <time.h>
 #include <math.h>
 #include "Connect6Algo.h"
-
+#define _CRT_SECURE_NO_WARNINGS
 #define MY_STONE -1
 #define OPPO_STONE -2
 #define BLOCK_STONE -3
@@ -43,6 +43,7 @@ typedef struct expect
 	int distance = 0;
 	int expectMax = 0;
 	int expectQuan = 0;
+	int subQ = 0;
 	int point[2] = { 0 };
 	int expectBoard[19][19] = { 0 };
 	
@@ -194,9 +195,10 @@ boolean isSevenInRow(int point[2], int valueBoard[][19], int exceptStone)
 
 
 
-boolean isSequence(int x, int y, int valueBoard[][19])
+boolean isSequence(int x, int y, int valueBoard[][19],int whatIsMine)
 {
-	return ((valueBoard[x][y] >= 0) || valueBoard[x][y] == -1 || valueBoard[x][y] == -3) && !OutOfBound(x, y);
+	return ((valueBoard[x][y] >= 0) || valueBoard[x][y] == whatIsMine || valueBoard[x][y] == BLOCK_STONE)
+		&& !OutOfBound(x, y);
 }
 
 boolean isValidP(int x, int y, int valueBoard[][19])
@@ -282,7 +284,7 @@ int ScanEmpty(int x, int y, int dx, int dy, int valueBoard[][19])
 }
 
 
-void AddValue(int x, int y, int valueBoard[][19])
+void AddValue(int x, int y, int valueBoard[][19], int whatIsMine)
 {
 	boolean rAlive = true;
 	boolean lAlive = true;
@@ -300,56 +302,56 @@ void AddValue(int x, int y, int valueBoard[][19])
 		int lx = x - i;
 		int uy = y - i;
 		int dy = y + i;
-		if (isSequence(rx, y, valueBoard) && rAlive)
+		if (isSequence(rx, y, valueBoard, whatIsMine) && rAlive)
 		{
 			if (valueBoard[rx][y] >= 0 && valueBoard[rx][y] < 4)
 				valueBoard[rx][y]++;
 		}
 		else
 			rAlive = false;
-		if (isSequence(rx, uy, valueBoard) && ruAlive)
+		if (isSequence(rx, uy, valueBoard, whatIsMine) && ruAlive)
 		{
 			if (valueBoard[rx][uy] >= 0 && valueBoard[rx][uy] < 4)
 				valueBoard[rx][uy]++;
 		}
 		else
 			ruAlive = false;
-		if (isSequence(rx, dy, valueBoard) && rdAlive)
+		if (isSequence(rx, dy, valueBoard, whatIsMine) && rdAlive)
 		{
 			if (valueBoard[rx][dy] >= 0 && valueBoard[rx][dy] < 4)
 				valueBoard[rx][dy]++;
 		}
 		else
 			rdAlive = false;
-		if (isSequence(x, uy, valueBoard) && uAlive)
+		if (isSequence(x, uy, valueBoard, whatIsMine) && uAlive)
 		{
 			if (valueBoard[x][uy] >= 0 && valueBoard[x][uy] < 4)
 				valueBoard[x][uy]++;
 		}
 		else
 			uAlive = false;
-		if (isSequence(x, dy, valueBoard) && dAlive)
+		if (isSequence(x, dy, valueBoard, whatIsMine) && dAlive)
 		{
 			if (valueBoard[x][dy] >= 0 && valueBoard[x][dy] < 4)
 				valueBoard[x][dy]++;
 		}
 		else
 			dAlive = false;
-		if (isSequence(lx, y, valueBoard) && lAlive)
+		if (isSequence(lx, y, valueBoard, whatIsMine) && lAlive)
 		{
 			if (valueBoard[lx][y] >= 0 && valueBoard[lx][y] < 4)
 				valueBoard[lx][y]++;
 		}
 		else
 			lAlive = false;
-		if (isSequence(lx, dy, valueBoard) && ldAlive)
+		if (isSequence(lx, dy, valueBoard, whatIsMine) && ldAlive)
 		{
 			if (valueBoard[lx][dy] >= 0 && valueBoard[lx][dy] < 4)
 				valueBoard[lx][dy]++;
 		}
 		else
 			ldAlive = false;
-		if (isSequence(lx, uy, valueBoard) && luAlive)
+		if (isSequence(lx, uy, valueBoard, whatIsMine) && luAlive)
 		{
 			if (valueBoard[lx][uy] >= 0 && valueBoard[lx][uy] < 4)
 				valueBoard[lx][uy]++;
@@ -385,7 +387,7 @@ int InitValue(int valueBoard[][19])
 
 	return myNum;
 }
-void ValueSet(int valueBoard[][19])
+void ValueSet(int valueBoard[][19],int whatIsMine)
 {
 	fprintf(ValueLog, "\nnew Value Setter\n");
 
@@ -394,11 +396,11 @@ void ValueSet(int valueBoard[][19])
 	{
 		for (int y = 0; y < 19; y++)
 		{
-			if (valueBoard[x][y] == MY_STONE || valueBoard[x][y] == BLOCK_STONE)
+			if (valueBoard[x][y] == whatIsMine || valueBoard[x][y] == BLOCK_STONE)
 			{
 				//점수를 분배한다.
 				fprintf(ValueLog, "( %d , %d ) is Value Spreader\n", x, y);
-				AddValue(x, y, valueBoard);
+				AddValue(x, y, valueBoard, whatIsMine);
 			}
 		}
 	}
@@ -450,6 +452,7 @@ int EvaluateFinish(int point[2], int valueBoard[][19], int exceptStone)
 			}
 		}
 	}
+	return 0;
 }
 
 
@@ -491,17 +494,18 @@ int GetDistance(int x, int y, int toX, int toY)
 	return (abs(x - toX)+abs(y - toY));
 }
 
-void Evaluate(int point[2], int valueBoard[][19])
+void Evaluate(int point[2], int valueBoard[][19],int whatIsMine)
 {
 	expect* lineUp;
 	int MV = 0;
 	int MQ = 0;
 	int deployed = 0;
+	int subQ = 0;
 	MV = GetMV(valueBoard);
 	MQ = GetMQ(MV, valueBoard);
 	if (MV > 3)
-		MQ += GetMQ(MV - 1, valueBoard);
-	int maxPair[3] = { 0 };
+		subQ = GetMQ(MV - 1, valueBoard);
+	int maxPair[4] = { 0 };
 	int iterMin = 0;
 	int iterMax = 19;
 	maxPair[2] = 100;
@@ -529,13 +533,14 @@ void Evaluate(int point[2], int valueBoard[][19])
 				lineUp[deployed].point[1] = y;
 				lineUp[deployed].distance = GetDistance(x, y, 9, 9);
 				CloneBoard(valueBoard, lineUp[deployed].expectBoard);
-				lineUp[deployed].expectBoard[x][y] = MY_STONE; //여기 중요!!
-				ValueSet(lineUp[deployed].expectBoard);
+				lineUp[deployed].expectBoard[x][y] = whatIsMine; //여기 중요!!
+				ValueSet(lineUp[deployed].expectBoard,whatIsMine);
 				fprintf(ExpMax, "\n\n-------------expectBoard of deployed = %d-------------------\n\n", deployed);
 				LogBoard(ExpMax, lineUp[deployed].expectBoard);
 				lineUp[deployed].expectMax = GetMV(lineUp[deployed].expectBoard);
 				lineUp[deployed].expectQuan = GetMQ(lineUp[deployed].expectMax, lineUp[deployed].expectBoard);
-
+				if (lineUp[deployed].expectMax > 3)
+					lineUp[deployed].subQ = GetMQ(lineUp[deployed].expectMax - 1, lineUp[deployed].expectBoard);
 				fprintf(ExpMax, "( %d , %d )\nexpectMax = %d\nexpectQuan = %d\n\n", x, y,
 					lineUp[deployed].expectMax, lineUp[deployed].expectQuan);
 
@@ -547,6 +552,7 @@ void Evaluate(int point[2], int valueBoard[][19])
 					maxPair[1] = lineUp[deployed].expectQuan;
 					point[0] = x;
 					point[1] = y;
+					maxPair[3] = lineUp[deployed].subQ;
 
 				}
 				else if (maxPair[0] == lineUp[deployed].expectMax)
@@ -557,12 +563,27 @@ void Evaluate(int point[2], int valueBoard[][19])
 						maxPair[1] = lineUp[deployed].expectQuan;
 						point[0] = x;
 						point[1] = y;
+						maxPair[3] = lineUp[deployed].subQ;
 					}
-					else if (maxPair[1] == lineUp[deployed].expectQuan && maxPair[2] > lineUp[deployed].distance)
+					else if (maxPair[1] == lineUp[deployed].expectQuan)
 					{
-						maxPair[2] = lineUp[deployed].distance;
-						point[0] = x;
-						point[1] = y;
+						if (maxPair[3] < lineUp[deployed].subQ)
+						{
+							maxPair[2] = lineUp[deployed].distance;
+							point[0] = x;
+							point[1] = y;
+						}
+						else if (maxPair[2] > lineUp[deployed].distance)
+						{
+
+
+
+							maxPair[2] = lineUp[deployed].distance;
+							maxPair[3] = lineUp[deployed].subQ;
+							point[0] = x;
+							point[1] = y;
+
+						}
 					}
 				}
 
@@ -577,19 +598,138 @@ void Evaluate(int point[2], int valueBoard[][19])
 			break;
 	}
 
-
-
-
-
 	free(lineUp);
-
-
 }
 
-boolean isNextSeven(int firstpoint[2], int valueBoard[][19])
+int GetTotalPoint(int valueBoard[][19], int atLeast)
 {
-	return true;
+	int total = 0;
+	for (int x = 0; x < 19; x++)
+	{
+		for (int y = 0; y < 19; y++)
+		{
+			if (valueBoard[x][y] >= atLeast)
+			{
+				total += valueBoard[x][y];
+			}
+		}
+	}
+	return total;
 }
+
+void Compare(int point[2], int myBoard[][19], int oppoBoard[][19])
+{
+	expect AtkPoint;
+	expect DefPoint;
+	int myBefore = 0;
+	int oppoBefore = 0;
+	int AtkTotal = 0;
+	int DefTotal = 0;
+	int myMV = 0;
+	int oppoMV = 0;
+	int AtkD = 0;
+	int DefD = 0;
+	myMV = GetMV(myBoard);
+	oppoMV = GetMV(oppoBoard);
+	myBefore = GetTotalPoint(myBoard, myMV);
+	oppoBefore = GetTotalPoint(oppoBoard, oppoMV);
+	if (myMV > 3)
+	{
+		myBefore += GetTotalPoint(myBoard, myMV - 1);
+	}
+	if (oppoMV > 3)
+	{
+		oppoBefore += GetTotalPoint(oppoBoard, myMV - 1);
+	}
+	Evaluate(AtkPoint.point, myBoard, MY_STONE);
+	Evaluate(DefPoint.point, oppoBoard, OPPO_STONE);
+
+	CloneBoard(myBoard, AtkPoint.expectBoard);
+	CloneBoard(oppoBoard, DefPoint.expectBoard);
+	AtkPoint.expectBoard[AtkPoint.point[0]][AtkPoint.point[1]] = MY_STONE;
+	DefPoint.expectBoard[DefPoint.point[0]][DefPoint.point[1]] = OPPO_STONE;
+	ValueSet(AtkPoint.expectBoard, MY_STONE);
+	ValueSet(DefPoint.expectBoard, OPPO_STONE);
+
+	AtkPoint.expectMax = GetMV(AtkPoint.expectBoard);
+	DefPoint.expectMax = GetMV(DefPoint.expectBoard);
+
+
+	AtkPoint.expectQuan = GetMQ(AtkPoint.expectMax, AtkPoint.expectBoard);
+	DefPoint.expectQuan = GetMQ(DefPoint.expectMax, DefPoint.expectBoard);
+
+	AtkTotal = GetTotalPoint(AtkPoint.expectBoard, AtkPoint.expectMax);
+	DefTotal = GetTotalPoint(DefPoint.expectBoard, DefPoint.expectMax);
+	if (AtkPoint.expectMax > 3)
+	{
+		AtkPoint.expectQuan += GetMQ(3, AtkPoint.expectBoard);
+		AtkTotal += GetTotalPoint(AtkPoint.expectBoard, AtkPoint.expectMax - 1);
+	}
+	if (DefPoint.expectMax > 3)
+	{
+		DefPoint.expectQuan += GetMQ(3, DefPoint.expectBoard);
+		DefTotal += GetTotalPoint(DefPoint.expectBoard, DefPoint.expectMax - 1);
+	}
+
+	AtkPoint.distance = GetDistance(AtkPoint.point[0], AtkPoint.point[1], 9, 9);
+	DefPoint.distance = GetDistance(DefPoint.point[0], DefPoint.point[1], 9, 9);
+
+
+
+	if (AtkPoint.expectMax < DefPoint.expectMax)
+	{
+		point[0] = DefPoint.point[0];
+		point[1] = DefPoint.point[1];
+	}
+	else if (AtkPoint.expectMax == DefPoint.expectMax)
+	{
+		if (AtkPoint.expectQuan > DefPoint.expectQuan)
+		{
+			point[0] = AtkPoint.point[0];
+			point[1] = AtkPoint.point[1];
+		}
+		else if (AtkPoint.expectQuan == DefPoint.expectQuan)
+		{
+			if (AtkTotal - myBefore < DefTotal - oppoBefore)
+			{
+				point[0] = DefPoint.point[0];
+				point[1] = DefPoint.point[1];
+			}
+			else if (AtkTotal - myBefore == DefTotal - oppoBefore)
+			{
+				if (AtkPoint.distance <= DefPoint.distance)
+				{
+					point[0] = AtkPoint.point[0];
+					point[1] = AtkPoint.point[1];
+				}
+				else
+				{
+					point[0] = DefPoint.point[0];
+					point[1] = DefPoint.point[1];
+				}
+			}
+			else
+			{
+				point[0] = AtkPoint.point[0];
+				point[1] = AtkPoint.point[1];
+			}
+		}
+		else
+		{
+			point[0] = DefPoint.point[0];
+			point[1] = DefPoint.point[1];
+		}
+	}
+	else
+	{
+		point[0] = AtkPoint.point[0];
+		point[1] = AtkPoint.point[1];
+	}
+}
+	
+
+
+
 
 void myturn(int cnt)
 {
@@ -623,9 +763,10 @@ void myturn(int cnt)
 	{
 		//첫번째 보드 초기화
 		InitValue(myValue);
+		InitValue(oppoValue);
 		//점수를 주자
-		ValueSet(myValue);
-
+		ValueSet(myValue, MY_STONE);
+		ValueSet(oppoValue, OPPO_STONE);
 		//당장에 긴급상황 검사를 다 시행하고 저장
 		firstMyFin = EvaluateFinish(APoint1, myValue, OPPO_STONE) == FIND_FINISH;
 		firstOppoFin = EvaluateFinish(DPoint1, myValue, MY_STONE) == FIND_FINISH;
@@ -640,7 +781,10 @@ void myturn(int cnt)
 
 			CloneBoard(myValue, myValue2);
 			myValue2[APoint1[0]][APoint1[1]] = MY_STONE;
-			ValueSet(myValue2);
+			CloneBoard(oppoValue, oppoValue2);
+			oppoValue2[APoint1[0]][APoint1[1]] = MY_STONE;
+			ValueSet(oppoValue, OPPO_STONE);
+			ValueSet(myValue2, MY_STONE);
 			secondMyFin = EvaluateFinish(APoint2, myValue2, OPPO_STONE) == FIND_FINISH;
 			//내 승리로 끝내는 수가 보이면
 
@@ -663,7 +807,10 @@ void myturn(int cnt)
 
 			CloneBoard(myValue, myValue2);
 			myValue2[DPoint1[0]][DPoint1[1]] = MY_STONE;
-			ValueSet(myValue2);
+			ValueSet(myValue2, MY_STONE);
+			CloneBoard(oppoValue, oppoValue2);
+			oppoValue2[DPoint1[0]][DPoint1[1]] = MY_STONE;
+			ValueSet(oppoValue, OPPO_STONE);
 			secondOppoFin = EvaluateFinish(DPoint2, myValue2, MY_STONE) == FIND_FINISH;
 			//상대 단독 승리 상황 유지시....
 			if (secondOppoFin)
@@ -681,7 +828,8 @@ void myturn(int cnt)
 			else
 			{
 				do {
-					Evaluate(VPoint2, myValue2);
+					//Evaluate(VPoint2, myValue2,);
+					Compare(VPoint2, myValue2, oppoValue2);
 					seven = isSevenInRow(VPoint2, myValue2, OPPO_STONE);
 					if (seven)
 					{
@@ -710,16 +858,19 @@ void myturn(int cnt)
 			}
 			else if (!sevenD)
 			{
-				atkMod == false;
+				atkMod = false;
 			}
 
 			CloneBoard(myValue, myValue2);
+			CloneBoard(oppoValue, oppoValue2);
+			
 
 			if (atkMod)
 			{
 				myValue2[APoint1[0]][APoint1[1]] = MY_STONE;
-				ValueSet(myValue);
-
+				oppoValue2[APoint1[0]][APoint1[1]] = MY_STONE;
+				ValueSet(myValue, MY_STONE);
+				ValueSet(oppoValue, OPPO_STONE);
 				secondMyFin = EvaluateFinish(APoint2, myValue2, OPPO_STONE) == FIND_FINISH;;
 
 				seven = isSevenInRow(APoint2, myValue2, OPPO_STONE);
@@ -737,7 +888,9 @@ void myturn(int cnt)
 			{
 			DEFMOD:
 				myValue2[DPoint1[0]][DPoint1[1]] = MY_STONE;
-				ValueSet(myValue);
+				ValueSet(myValue, MY_STONE);
+				oppoValue2[DPoint1[0]][DPoint1[1]] = MY_STONE;
+				ValueSet(oppoValue, OPPO_STONE);
 
 				secondOppoFin = EvaluateFinish(DPoint2, myValue2, OPPO_STONE) == FIND_FINISH;
 
@@ -759,7 +912,8 @@ void myturn(int cnt)
 				else
 				{
 					do {
-						Evaluate(VPoint2, myValue2);
+						//Evaluate(VPoint2, myValue2);
+						Compare(VPoint2, myValue2, oppoValue2);
 						seven = isSevenInRow(VPoint2, myValue2, OPPO_STONE);
 						if (seven)
 						{
@@ -781,7 +935,8 @@ void myturn(int cnt)
 
 		PEACE:
 			do {
-				Evaluate(VPoint1, myValue);
+				//Evaluate(VPoint1, myValue);
+				Compare(VPoint1, myValue, oppoValue);
 				seven = isSevenInRow(VPoint1, myValue, OPPO_STONE);
 				if (seven)
 				{
@@ -791,9 +946,13 @@ void myturn(int cnt)
 
 			CloneBoard(myValue, myValue2);
 			myValue2[VPoint1[0]][VPoint1[1]] = MY_STONE;
-			ValueSet(myValue2);
+			ValueSet(myValue2, MY_STONE);
+			CloneBoard(oppoValue, oppoValue2);
+			oppoValue2[VPoint1[0]][VPoint1[1]] = MY_STONE;
+			ValueSet(oppoValue2, OPPO_STONE);
 			do {
-				Evaluate(VPoint2, myValue2);
+				//Evaluate(VPoint2, myValue2);
+				Compare(VPoint2, myValue2, oppoValue2);
 				seven = isSevenInRow(VPoint2, myValue2, OPPO_STONE);
 				if (seven)
 				{
@@ -828,9 +987,14 @@ void myturn(int cnt)
 	LogBoard(BoardLog, myValue2);
 	CloneBoard(myValue2, finalValue);
 	finalValue[x[1]][y[1]] = MY_STONE;
-	fprintf(BoardLog, "\n\n-------------------finalValue--------------\n\n");
-
+	fprintf(BoardLog, "\n\n-------------------myfinalValue--------------\n\n");
 	LogBoard(BoardLog, finalValue);
+	fprintf(BoardLog, "\n\n-------------------oppoValue1--------------\n\n");
+	LogBoard(BoardLog, oppoValue);
+	fprintf(BoardLog, "\n\n-------------------oppoValue2--------------\n\n");
+	LogBoard(BoardLog, oppoValue2);
+
+	
 
 
 	TermLog();
