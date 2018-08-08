@@ -30,6 +30,7 @@
 
 #define FIND_FINISH 1
 
+FILE* ConnectLog;
 FILE* ScanLog;
 FILE* BoardLog;
 FILE* EvaLog;
@@ -40,6 +41,7 @@ FILE* SevenLog;
 
 typedef struct expect
 {
+	int connect = 0;
 	int distance = 0;
 	int expectMax = 0;
 	int expectQuan = 0;
@@ -51,7 +53,32 @@ typedef struct expect
 
 
 char info[] = { "TeamName:1234567890,Department:AI부서[C]" };
+void InitLog()
+{
+	ConnectLog = fopen("./ConnectLog.txt", "a");
+	ExpMax = fopen("./ExpMax.txt", "a");
+	BoardLog = fopen("./BoardLog.txt", "a");
+	SevenLog = fopen("./SevenLog.txt", "a");
+	DefenceLog = fopen("./DefenceLog.txt", "a");
+	EvaLog = fopen("./EvaLog.txt", "a");
+	ScanLog = fopen("./ScanLog.txt", "a");
 
+
+	ValueLog = fopen("./ValueLog.txt", "a");
+
+}
+
+void TermLog()
+{
+	fclose(ConnectLog);
+	fclose(SevenLog);
+	fclose(DefenceLog);
+	fclose(ValueLog);
+	fclose(EvaLog);
+	fclose(ScanLog);
+	fclose(BoardLog);
+	fclose(ExpMax);
+}
 
 void CloneBoard(int original[][19], int secondary[][19])
 {
@@ -82,29 +109,7 @@ void LogBoard(FILE* logFP, int valueBoard[][19])
 		fprintf(logFP, "\n");
 	}
 }
-void InitLog()
-{
-	BoardLog = fopen("./BoardLog.txt", "a");
-	SevenLog = fopen("./SevenLog.txt", "a");
-	DefenceLog = fopen("./DefenceLog.txt", "a");
-	EvaLog = fopen("./EvaLog.txt", "a");
-	ScanLog = fopen("./ScanLog.txt", "a");
 
-	ExpMax = fopen("./ExpMax.txt", "a");
-	ValueLog = fopen("./ValueLog.txt", "a");
-
-}
-
-void TermLog()
-{
-	fclose(SevenLog);
-	fclose(DefenceLog);
-	fclose(ValueLog);
-	fclose(EvaLog);
-	fclose(ScanLog);
-	fclose(BoardLog);
-	fclose(ExpMax);
-}
 boolean OutOfBound(int x, int y)
 {
 	fprintf(ScanLog, "Out of Bound! : ( %d , %d ) \n", x, y);
@@ -441,8 +446,13 @@ int EvaluateFinish(int point[2], int valueBoard[][19], int exceptStone)
 
 					fprintf(DefenceLog, " point : ( %d , %d )\ndirection : ( %d , %d )\n", x, y, dx, dy);
 					distance = ScanEmpty(x, y, dx, dy, valueBoard);
-					if (isValidP(x + distance * dx, y + distance * dy, valueBoard))
+					if (isValidP(x + 4 * dx, y + 4 * dy, valueBoard) && valueBoard[x + 5 * dx][y + 5 * dy] == MY_STONE)
 					{
+						return 0;
+					}
+					else if (isValidP(x + distance * dx, y + distance * dy, valueBoard))
+					{
+
 						point[0] = x + (dx * distance);
 						point[1] = y + (dy * distance);
 
@@ -480,18 +490,235 @@ int GetMQ(int maximum, int valueBoard[][19])
 		{
 			int target = valueBoard[x][y];
 			if (target == maximum)
+			{
 				quantity++;
-
+				fprintf(EvaLog, "( %d , %d ) is %d and Q is now %d\n", x, y,target, quantity);
+			}
 
 		}
 	}
-
+	fprintf(EvaLog, "I gonna return : %d", quantity);
 	return quantity;
 }
 
 int GetDistance(int x, int y, int toX, int toY)
 {
 	return (abs(x - toX)+abs(y - toY));
+}
+
+int GetConnect(expect point,int valueBoard[][19],int whatIsMine)
+{
+
+	boolean rAlive = true;
+	boolean lAlive = true;
+	boolean uAlive = true;
+	boolean dAlive = true;
+	boolean ruAlive = true;
+	boolean rdAlive = true;
+	boolean luAlive = true;
+	boolean ldAlive = true;
+	int x = point.point[0];
+	int y = point.point[1];
+	point.connect = 0;
+	int RC = 0;
+	int LC = 0;
+	int UC = 0;
+	int DC = 0;
+	int RUC = 0;
+	int RDC = 0;
+	int LUC = 0;
+	int LDC = 0;
+	int Hor = 0;
+	int Ver = 0;
+	int Dia1 = 0;
+	int Dia2 = 0;
+	int r = 1;
+	int l = 1;
+	int ru = 1;
+	int rd = 1;
+	int u = 1;
+	int d = 1;
+	int lu = 1;
+	int ld = 1;
+
+
+
+	for (int i = 1; i < 6; i++)
+	{
+		
+		int rx = x + i;
+		int lx = x - i;
+		int uy = y - i;
+		int dy = y + i;
+		
+
+
+		if (isSequence(rx, y, valueBoard, whatIsMine) && rAlive)
+		{
+			if (valueBoard[rx][y] == MY_STONE || valueBoard[rx][y] == BLOCK_STONE)
+			{
+				RC += r;
+				r++;
+			}
+			else
+			{
+				r = 1;
+			}
+		}
+		else
+		{
+			RC = 0;
+			rAlive = false;
+		}
+		if (isSequence(rx, uy, valueBoard, whatIsMine) && ruAlive)
+		{
+			if (valueBoard[rx][uy] == MY_STONE || valueBoard[rx][uy] == BLOCK_STONE)
+			{
+				RUC += ru;
+				ru++;
+			}
+		
+			else
+			{
+				ru = 1;
+			}
+		}
+		else
+		{
+			RUC = 0;
+			ruAlive = false;
+		}
+		if (isSequence(rx, dy, valueBoard, whatIsMine) && rdAlive)
+		{
+			if (valueBoard[rx][dy] == MY_STONE || valueBoard[rx][dy] == BLOCK_STONE)
+			{
+				RDC += rd;
+				rd++;
+			}
+			else
+			{
+				rd = 1;
+			}
+		}
+		else
+		{
+			RDC = 0;
+			rdAlive = false;
+		}
+		if (isSequence(x, uy, valueBoard, whatIsMine) && uAlive)
+		{
+			if (valueBoard[x][uy] == MY_STONE || valueBoard[x][uy] == BLOCK_STONE)
+			{
+				UC += u;
+				u++;
+			}
+
+			else
+			{
+				u = 1;
+			}
+		}
+		else
+		{
+			UC = 0;
+			uAlive = false;
+		}
+		if (isSequence(x, dy, valueBoard, whatIsMine) && dAlive)
+		{
+			if (valueBoard[x][dy] == MY_STONE || valueBoard[x][dy] == BLOCK_STONE)
+			{
+				DC += d;
+				d++;
+			}
+
+			else
+			{
+				d = 1;
+			}
+		}
+		else
+		{
+			DC = 0;
+			dAlive = false;
+		}
+		if (isSequence(lx, y, valueBoard, whatIsMine) && lAlive)
+		{
+			if (valueBoard[lx][y] == MY_STONE || valueBoard[lx][y] == BLOCK_STONE)
+			{
+				LC += l;
+				l++;
+			}
+
+			else
+			{
+				l = 1;
+			}
+		}
+		else
+		{
+			LC = 0;
+			lAlive = false;
+		}
+		if (isSequence(lx, dy, valueBoard, whatIsMine) && ldAlive)
+		{
+			if (valueBoard[lx][dy] == MY_STONE || valueBoard[lx][dy] == BLOCK_STONE)
+			{
+				LDC += ld;
+				ld++;
+			}
+
+			else
+			{
+				ld = 1;
+			}
+		}
+		else
+		{
+			LDC = 0;
+			ldAlive = false;
+		}
+		if (isSequence(lx, uy, valueBoard, whatIsMine) && luAlive)
+		{
+			if (valueBoard[lx][uy] == MY_STONE || valueBoard[lx][uy] == BLOCK_STONE)
+			{
+				LUC += lu;
+				lu++;
+			}
+
+			else
+			{
+				lu = 1;
+			}
+		}
+		else
+		{
+			LUC = 0;
+			luAlive = false;
+		}
+
+	}
+
+	if ((valueBoard[x + 1][y] == MY_STONE || valueBoard[x + 1][y] == BLOCK_STONE) && (valueBoard[x - 1][y] == MY_STONE || valueBoard[x -1][y] == BLOCK_STONE))
+		Hor += 3;
+
+	if ((valueBoard[x + 1][y+1] == MY_STONE || valueBoard[x + 1][y + 1] == BLOCK_STONE) && (valueBoard[x - 1][y-1] == MY_STONE || valueBoard[x - 1][y - 1] == BLOCK_STONE))
+		Dia1 += 3;
+
+	if ((valueBoard[x + 1][y-1] == MY_STONE || valueBoard[x + 1][y - 1] == BLOCK_STONE) && (valueBoard[x - 1][y+1] == MY_STONE || valueBoard[x - 1][y + 1] == BLOCK_STONE))
+		Dia2 += 3;
+
+	if ((valueBoard[x][y+1] == MY_STONE || valueBoard[x][y + 1] == BLOCK_STONE) && (valueBoard[x - 1][y-1] == MY_STONE || valueBoard[x - 1][y - 1] == BLOCK_STONE))
+		Ver += 3;
+
+	Hor = LC + RC;
+	Ver = UC + DC;
+	Dia1 = LUC + RDC;
+	Dia2 = RUC + LDC;
+
+
+	fprintf(ConnectLog, "\nConnect of ( %d , %d )\n\t%d\t%d\t%d\n\t%d\t\t%d\n\t%d\t%d\t%d\n", x, y, LUC, UC, RUC, LC, RC, LDC, DC, RDC);
+	
+	return max((Hor + Ver + Dia1 + Dia2), max(Hor, Ver, Dia1, Dia2));
 }
 
 void Evaluate(int point[2], int valueBoard[][19],int whatIsMine)
@@ -502,7 +729,9 @@ void Evaluate(int point[2], int valueBoard[][19],int whatIsMine)
 	int deployed = 0;
 	int subQ = 0;
 	MV = GetMV(valueBoard);
+	fprintf(EvaLog, "HERE!!\n");
 	MQ = GetMQ(MV, valueBoard);
+	fprintf(EvaLog, "\nafter Get MQ : %d\n", MQ);
 	if (MV > 3)
 		subQ = GetMQ(MV - 1, valueBoard);
 	int maxPair[4] = { 0 };
@@ -516,9 +745,11 @@ void Evaluate(int point[2], int valueBoard[][19],int whatIsMine)
 		iterMax = 14;
 		MQ = 81;
 	}
-	lineUp = (expect*)malloc(sizeof(expect)*MQ);
+	fprintf(EvaLog, "\nbefore malloc MQ : %d\n", MQ);
+	lineUp = (expect*)malloc(sizeof(expect)*(MQ+subQ));
 	fprintf(EvaLog, "\n\n----------------Expectation start----------------\n\n");
 	fprintf(ExpMax, "\n\n-------------original Board-------------------\n\n");
+	fprintf(EvaLog, "now MV : %d , now MQ : %d , subQ : %d\n\n", MV, MQ, subQ);
 	LogBoard(ExpMax, valueBoard);
 	for (int x = iterMin; x < iterMax; x++)
 	{
@@ -527,14 +758,15 @@ void Evaluate(int point[2], int valueBoard[][19],int whatIsMine)
 			int target = valueBoard[x][y];
 			if (target == MV || (target == MV - 1 && MV > 3))
 			{
-
-
+				fprintf(EvaLog, "\nMQ : %d , deployed : %d\nAbout ( %d , %d )\n",MQ,deployed,x,y);
+				
 				lineUp[deployed].point[0] = x;
 				lineUp[deployed].point[1] = y;
 				lineUp[deployed].distance = GetDistance(x, y, 9, 9);
 				CloneBoard(valueBoard, lineUp[deployed].expectBoard);
 				lineUp[deployed].expectBoard[x][y] = whatIsMine; //여기 중요!!
 				ValueSet(lineUp[deployed].expectBoard,whatIsMine);
+				lineUp[deployed].connect = GetConnect(lineUp[deployed], lineUp[deployed].expectBoard, MY_STONE);
 				fprintf(ExpMax, "\n\n-------------expectBoard of deployed = %d-------------------\n\n", deployed);
 				LogBoard(ExpMax, lineUp[deployed].expectBoard);
 				lineUp[deployed].expectMax = GetMV(lineUp[deployed].expectBoard);
@@ -546,43 +778,56 @@ void Evaluate(int point[2], int valueBoard[][19],int whatIsMine)
 
 				fprintf(EvaLog, "( %d , %d )\nexpectMax = %d\nexpectQuan = %d\n\n", x, y,
 					lineUp[deployed].expectMax, lineUp[deployed].expectQuan);
+
+				fprintf(ConnectLog, "\nmaxPair[3] = %d , lineUp[deployed].connect = %d\n",maxPair[3],lineUp[deployed].connect);
 				if (maxPair[0] < lineUp[deployed].expectMax)
 				{
+					/*
+						maxPair
+							0 = MV
+							1 = MQ
+							2 = distance
+							3 = connect
+					*/
 					maxPair[0] = lineUp[deployed].expectMax;
 					maxPair[1] = lineUp[deployed].expectQuan;
+					maxPair[2] = lineUp[deployed].distance;
 					point[0] = x;
 					point[1] = y;
-					maxPair[3] = lineUp[deployed].subQ;
+					maxPair[3] = lineUp[deployed].connect;
 
 				}
 				else if (maxPair[0] == lineUp[deployed].expectMax)
 				{
 
-					if (maxPair[1] < lineUp[deployed].expectQuan)
+					if (maxPair[3] < lineUp[deployed].connect)
 					{
 						maxPair[1] = lineUp[deployed].expectQuan;
+						maxPair[2] = lineUp[deployed].distance;
+						maxPair[3] = lineUp[deployed].connect;
 						point[0] = x;
 						point[1] = y;
-						maxPair[3] = lineUp[deployed].subQ;
 					}
-					else if (maxPair[1] == lineUp[deployed].expectQuan)
+					else if (maxPair[3] == lineUp[deployed].connect)
 					{
-						if (maxPair[3] < lineUp[deployed].subQ)
+						if (maxPair[1] < lineUp[deployed].expectQuan)
 						{
+
+							maxPair[1] = lineUp[deployed].expectQuan;
 							maxPair[2] = lineUp[deployed].distance;
 							point[0] = x;
 							point[1] = y;
 						}
-						else if (maxPair[2] > lineUp[deployed].distance)
+						else if (maxPair[1] == lineUp[deployed].expectQuan)
 						{
+							if (maxPair[2] > lineUp[deployed].distance)
+							{
 
+								maxPair[2] = lineUp[deployed].distance;
+								point[0] = x;
+								point[1] = y;
 
-
-							maxPair[2] = lineUp[deployed].distance;
-							maxPair[3] = lineUp[deployed].subQ;
-							point[0] = x;
-							point[1] = y;
-
+							}
 						}
 					}
 				}
@@ -590,11 +835,11 @@ void Evaluate(int point[2], int valueBoard[][19],int whatIsMine)
 				deployed++;
 
 			}
-			if (deployed >= MQ)
+			if (deployed >= MQ+subQ)
 				break;
 		}
 
-		if (deployed >= MQ)
+		if (deployed >= MQ+subQ)
 			break;
 	}
 
