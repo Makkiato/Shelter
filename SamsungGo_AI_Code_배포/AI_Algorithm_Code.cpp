@@ -617,116 +617,6 @@ int GetTotalPoint(int valueBoard[][19], int atLeast)
 	return total;
 }
 
-void Compare(int point[2], int myBoard[][19], int oppoBoard[][19])
-{
-	expect AtkPoint;
-	expect DefPoint;
-	int myBefore = 0;
-	int oppoBefore = 0;
-	int AtkTotal = 0;
-	int DefTotal = 0;
-	int myMV = 0;
-	int oppoMV = 0;
-	int AtkD = 0;
-	int DefD = 0;
-	myMV = GetMV(myBoard);
-	oppoMV = GetMV(oppoBoard);
-	myBefore = GetTotalPoint(myBoard, myMV);
-	oppoBefore = GetTotalPoint(oppoBoard, oppoMV);
-	if (myMV > 3)
-	{
-		myBefore += GetTotalPoint(myBoard, myMV - 1);
-	}
-	if (oppoMV > 3)
-	{
-		oppoBefore += GetTotalPoint(oppoBoard, myMV - 1);
-	}
-	Evaluate(AtkPoint.point, myBoard, MY_STONE);
-	Evaluate(DefPoint.point, oppoBoard, OPPO_STONE);
-
-	CloneBoard(myBoard, AtkPoint.expectBoard);
-	CloneBoard(oppoBoard, DefPoint.expectBoard);
-	AtkPoint.expectBoard[AtkPoint.point[0]][AtkPoint.point[1]] = MY_STONE;
-	DefPoint.expectBoard[DefPoint.point[0]][DefPoint.point[1]] = OPPO_STONE;
-	ValueSet(AtkPoint.expectBoard, MY_STONE);
-	ValueSet(DefPoint.expectBoard, OPPO_STONE);
-
-	AtkPoint.expectMax = GetMV(AtkPoint.expectBoard);
-	DefPoint.expectMax = GetMV(DefPoint.expectBoard);
-
-
-	AtkPoint.expectQuan = GetMQ(AtkPoint.expectMax, AtkPoint.expectBoard);
-	DefPoint.expectQuan = GetMQ(DefPoint.expectMax, DefPoint.expectBoard);
-
-	AtkTotal = GetTotalPoint(AtkPoint.expectBoard, AtkPoint.expectMax);
-	DefTotal = GetTotalPoint(DefPoint.expectBoard, DefPoint.expectMax);
-	if (AtkPoint.expectMax > 3)
-	{
-		AtkPoint.expectQuan += GetMQ(3, AtkPoint.expectBoard);
-		AtkTotal += GetTotalPoint(AtkPoint.expectBoard, AtkPoint.expectMax - 1);
-	}
-	if (DefPoint.expectMax > 3)
-	{
-		DefPoint.expectQuan += GetMQ(3, DefPoint.expectBoard);
-		DefTotal += GetTotalPoint(DefPoint.expectBoard, DefPoint.expectMax - 1);
-	}
-
-	AtkPoint.distance = GetDistance(AtkPoint.point[0], AtkPoint.point[1], 9, 9);
-	DefPoint.distance = GetDistance(DefPoint.point[0], DefPoint.point[1], 9, 9);
-
-
-
-	if (AtkPoint.expectMax < DefPoint.expectMax)
-	{
-		point[0] = DefPoint.point[0];
-		point[1] = DefPoint.point[1];
-	}
-	else if (AtkPoint.expectMax == DefPoint.expectMax)
-	{
-		if (AtkPoint.expectQuan > DefPoint.expectQuan)
-		{
-			point[0] = AtkPoint.point[0];
-			point[1] = AtkPoint.point[1];
-		}
-		else if (AtkPoint.expectQuan == DefPoint.expectQuan)
-		{
-			if (AtkTotal - myBefore < DefTotal - oppoBefore)
-			{
-				point[0] = DefPoint.point[0];
-				point[1] = DefPoint.point[1];
-			}
-			else if (AtkTotal - myBefore == DefTotal - oppoBefore)
-			{
-				if (AtkPoint.distance <= DefPoint.distance)
-				{
-					point[0] = AtkPoint.point[0];
-					point[1] = AtkPoint.point[1];
-				}
-				else
-				{
-					point[0] = DefPoint.point[0];
-					point[1] = DefPoint.point[1];
-				}
-			}
-			else
-			{
-				point[0] = AtkPoint.point[0];
-				point[1] = AtkPoint.point[1];
-			}
-		}
-		else
-		{
-			point[0] = DefPoint.point[0];
-			point[1] = DefPoint.point[1];
-		}
-	}
-	else
-	{
-		point[0] = AtkPoint.point[0];
-		point[1] = AtkPoint.point[1];
-	}
-}
-	
 
 
 
@@ -829,7 +719,7 @@ void myturn(int cnt)
 			{
 				do {
 					//Evaluate(VPoint2, myValue2,);
-					Compare(VPoint2, myValue2, oppoValue2);
+					Evaluate(VPoint2, myValue2, MY_STONE);
 					seven = isSevenInRow(VPoint2, myValue2, OPPO_STONE);
 					if (seven)
 					{
@@ -913,7 +803,7 @@ void myturn(int cnt)
 				{
 					do {
 						//Evaluate(VPoint2, myValue2);
-						Compare(VPoint2, myValue2, oppoValue2);
+						Evaluate(VPoint2, myValue2, MY_STONE);
 						seven = isSevenInRow(VPoint2, myValue2, OPPO_STONE);
 						if (seven)
 						{
@@ -936,7 +826,7 @@ void myturn(int cnt)
 		PEACE:
 			do {
 				//Evaluate(VPoint1, myValue);
-				Compare(VPoint1, myValue, oppoValue);
+				Evaluate(VPoint1, myValue, MY_STONE);
 				seven = isSevenInRow(VPoint1, myValue, OPPO_STONE);
 				if (seven)
 				{
@@ -952,7 +842,7 @@ void myturn(int cnt)
 			ValueSet(oppoValue2, OPPO_STONE);
 			do {
 				//Evaluate(VPoint2, myValue2);
-				Compare(VPoint2, myValue2, oppoValue2);
+				Evaluate(VPoint2, myValue2, MY_STONE);
 				seven = isSevenInRow(VPoint2, myValue2, OPPO_STONE);
 				if (seven)
 				{
